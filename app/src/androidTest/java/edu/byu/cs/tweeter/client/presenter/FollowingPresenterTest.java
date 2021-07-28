@@ -95,20 +95,39 @@ public class FollowingPresenterTest {
                 .getGetFollowingTask(Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any());
         Mockito.doReturn(followingServiceSpy).when(followingPresenterSpy).getFollowingService(Mockito.any());
 
-        // Configure followingViewMock to decrement the CountdownLatch when FollowingView.addItems
-        // and FollowingView.displayErrorMessage get called, which unblocks the test case which
-        // is waiting for asynchronous operations to complete.
+        // Configure followingPresenterSpy to decrement the CountdownLatch after observer
+        // methods execute, thus unblocking test cases.
         resetCountDownLatch();
-        Answer<Void> threadSyncAnswer = invocation -> {
-            countDownLatch.countDown();
+
+        Answer<Void> followeesRetrievedAnswer = invocation -> {
+            invocation.callRealMethod();
+            decrementCountDownLatch();
             return null;
         };
-        Mockito.doAnswer(threadSyncAnswer).when(followingViewMock).addItems(Mockito.anyList());
-        Mockito.doAnswer(threadSyncAnswer).when(followingViewMock).displayErrorMessage(Mockito.anyString());
+        Answer<Void> followeesNotRetrievedAnswer = invocation -> {
+            invocation.callRealMethod();
+            decrementCountDownLatch();
+            return null;
+        };
+        Answer<Void> handleExceptionAnswer = invocation -> {
+            invocation.callRealMethod();
+            decrementCountDownLatch();
+            return null;
+        };
+        Mockito.doAnswer(followeesRetrievedAnswer).when(followingPresenterSpy)
+                .followeesRetrieved(Mockito.any(), Mockito.anyBoolean());
+        Mockito.doAnswer(followeesNotRetrievedAnswer).when(followingPresenterSpy)
+                .followeesNotRetrieved(Mockito.any());
+        Mockito.doAnswer(handleExceptionAnswer).when(followingPresenterSpy)
+                .handleException(Mockito.any());
     }
 
     private void resetCountDownLatch() {
         countDownLatch = new CountDownLatch(1);
+    }
+
+    private void decrementCountDownLatch() {
+        countDownLatch.countDown();
     }
 
     private void awaitCountDownLatch() throws InterruptedException {

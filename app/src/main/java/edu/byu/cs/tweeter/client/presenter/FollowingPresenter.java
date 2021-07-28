@@ -46,34 +46,34 @@ public class FollowingPresenter implements FollowingService.Observer {
         this.authToken = authToken;
     }
 
-    public synchronized User getLastFollowee() {
+    public User getLastFollowee() {
         return lastFollowee;
     }
 
-    private synchronized void setLastFollowee(User lastFollowee) {
+    private void setLastFollowee(User lastFollowee) {
         this.lastFollowee = lastFollowee;
     }
 
-    public synchronized boolean isHasMorePages() {
+    public boolean isHasMorePages() {
         return hasMorePages;
     }
 
-    private synchronized void setHasMorePages(boolean hasMorePages) {
+    private void setHasMorePages(boolean hasMorePages) {
         this.hasMorePages = hasMorePages;
     }
 
-    public synchronized boolean isLoading() {
+    public boolean isLoading() {
         return isLoading;
     }
 
-    private synchronized void setLoading(boolean loading) {
+    private void setLoading(boolean loading) {
         isLoading = loading;
     }
 
     /**
      * Called by the view to request that another page of "following" users be loaded.
      */
-    public synchronized void loadMoreItems() {
+    public void loadMoreItems() {
         if (!isLoading && hasMorePages) {
             setLoading(true);
             view.setLoading(true);
@@ -115,7 +115,7 @@ public class FollowingPresenter implements FollowingService.Observer {
      * @param hasMorePages whether or not there are more followees to be retrieved.
      */
     @Override
-    public synchronized void followeesRetrieved(List<User> followees, boolean hasMorePages) {
+    public void followeesRetrieved(List<User> followees, boolean hasMorePages) {
         setLastFollowee((followees.size() > 0) ? followees.get(followees.size() - 1) : null);
         setHasMorePages(hasMorePages);
 
@@ -124,8 +124,13 @@ public class FollowingPresenter implements FollowingService.Observer {
         setLoading(false);
     }
 
+    /**
+     * Notifies the presenter when asynchronous retrieval of followees failed.
+     *
+     * @param message error message.
+     */
     @Override
-    public synchronized void followeesNotRetrieved(String message) {
+    public void followeesNotRetrieved(String message) {
         String errorMessage = "Failed to retrieve followees: " + message;
         Log.e(LOG_TAG, errorMessage);
 
@@ -135,13 +140,13 @@ public class FollowingPresenter implements FollowingService.Observer {
     }
 
     /**
-     * Notifies the view that an exception occurred in an asynchronous method this class is
+     * Notifies the presenter that an exception occurred in an asynchronous method this class is
      * observing.
      *
      * @param exception the exception.
      */
     @Override
-    public synchronized void handleException(Exception exception) {
+    public void handleException(Exception exception) {
         String errorMessage = "Failed to retrieve followees because of exception: " + exception.getMessage();
         Log.e(LOG_TAG, errorMessage, exception);
 
