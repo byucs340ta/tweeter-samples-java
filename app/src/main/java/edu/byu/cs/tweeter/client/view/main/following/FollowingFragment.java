@@ -53,7 +53,7 @@ public class FollowingFragment extends Fragment implements FollowingPresenter.Vi
     public static FollowingFragment newInstance(User user, AuthToken authToken) {
         FollowingFragment fragment = new FollowingFragment();
 
-        Bundle args = new Bundle(2);
+        Bundle args = new Bundle(1);
         args.putSerializable(USER_KEY, user);
 
         fragment.setArguments(args);

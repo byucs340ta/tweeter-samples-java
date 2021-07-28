@@ -24,9 +24,7 @@ public class LoginService {
      */
     public interface Observer {
         void loginSuccessful(User user, AuthToken authToken);
-
         void loginUnsuccessful(String message);
-
         void handleException(Exception exception);
     }
 

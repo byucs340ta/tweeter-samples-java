@@ -72,7 +72,9 @@ public class LoginPresenter implements LoginService.Observer {
      */
     @Override
     public void loginUnsuccessful(String message) {
-        view.loginUnsuccessful("Failed to login. " + message);
+        String errorMessage = "Failed to login: " + message;
+        Log.e(LOG_TAG, errorMessage);
+        view.loginUnsuccessful(errorMessage);
     }
 
     /**
@@ -83,7 +85,8 @@ public class LoginPresenter implements LoginService.Observer {
      */
     @Override
     public void handleException(Exception exception) {
-        Log.e(LOG_TAG, exception.getMessage(), exception);
-        view.loginUnsuccessful("Failed to login because of exception: " + exception.getMessage());
+        String errorMessage = "Failed to login because of exception: " + exception.getMessage();
+        Log.e(LOG_TAG, errorMessage, exception);
+        view.loginUnsuccessful(errorMessage);
     }
 }

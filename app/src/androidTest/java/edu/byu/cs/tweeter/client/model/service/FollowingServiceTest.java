@@ -72,7 +72,7 @@ public class FollowingServiceTest {
 
         // Setup an observer for the FollowingService
         observer = new FollowingServiceObserver();
-        resetCountdownLatch();
+        resetCountDownLatch();
 
         // Create a FollowingService instance and wrap it with a spy that will use mock tasks
         FollowingService followingService = new FollowingService(observer);
@@ -102,12 +102,17 @@ public class FollowingServiceTest {
                 invalidRequest_limit, invalidRequest_lastFollowee)).thenReturn(invalidRequest_GetFollowingTaskSpy);
     }
 
-    private void resetCountdownLatch() {
+    private void resetCountDownLatch() {
         countDownLatch = new CountDownLatch(1);
     }
 
+    private void awaitCountDownLatch() throws InterruptedException {
+        countDownLatch.await();
+        resetCountDownLatch();
+    }
+
     /**
-     * A {@link FollowingService.Observer} implementation that can be used to get the value eventually
+     * A {@link FollowingService.Observer} implementation that can be used to get the values eventually
      * returned by an asynchronous call on the {@link FollowingService}. Counts down on the
      * countDownLatch so tests can wait for the background thread to call a method on the observer.
      */
@@ -124,6 +129,7 @@ public class FollowingServiceTest {
             this.hasMorePages = hasMorePages;
             this.failureMessage = null;
             this.exception = null;
+
             countDownLatch.countDown();
         }
 
@@ -133,6 +139,7 @@ public class FollowingServiceTest {
             this.hasMorePages = false;
             this.failureMessage = message;
             this.exception = null;
+
             countDownLatch.countDown();
         }
 
@@ -142,6 +149,7 @@ public class FollowingServiceTest {
             this.hasMorePages = false;
             this.failureMessage = null;
             this.exception = exception;
+
             countDownLatch.countDown();
         }
 
@@ -165,8 +173,7 @@ public class FollowingServiceTest {
                                             validRequest_limit, validRequest_lastFollowee);
 
         // Wait for the background thread to finish and invoke a method on the observer
-        countDownLatch.await();
-        resetCountdownLatch();
+        awaitCountDownLatch();
 
         Assert.assertArrayEquals(successResponse_followees.toArray(), observer.getFollowees().toArray());
         Assert.assertEquals(successResponse_hasMorePages, observer.getHasMorePages());
@@ -182,8 +189,7 @@ public class FollowingServiceTest {
         followingServiceSpy.getFollowees(validRequest_authToken, validRequest_targetUser,
                                             validRequest_limit, validRequest_lastFollowee);
 
-        countDownLatch.await();
-        resetCountdownLatch();
+        awaitCountDownLatch();
 
         for(User user : observer.getFollowees()) {
             Assert.assertNotNull(user.getImageBytes());
@@ -191,7 +197,7 @@ public class FollowingServiceTest {
     }
 
     /**
-     * Verify that for unsuccessful requests, the {@link FollowingService}
+     * Verify that for unsuccessful requests, the {@link FollowingService} returns
      * the failure result.
      */
     @Test
@@ -199,8 +205,7 @@ public class FollowingServiceTest {
         followingServiceSpy.getFollowees(invalidRequest_authToken, invalidRequest_targetUser,
                                             invalidRequest_limit, invalidRequest_lastFollowee);
 
-        countDownLatch.await();
-        resetCountdownLatch();
+        awaitCountDownLatch();
 
         Assert.assertNull(observer.getFollowees());
         Assert.assertFalse(observer.getHasMorePages());
@@ -220,8 +225,7 @@ public class FollowingServiceTest {
         followingServiceSpy.getFollowees(validRequest_authToken, validRequest_targetUser,
                                             validRequest_limit, validRequest_lastFollowee);
 
-        countDownLatch.await();
-        resetCountdownLatch();
+        awaitCountDownLatch();
 
         Assert.assertNull(observer.getFollowees());
         Assert.assertFalse(observer.getHasMorePages());

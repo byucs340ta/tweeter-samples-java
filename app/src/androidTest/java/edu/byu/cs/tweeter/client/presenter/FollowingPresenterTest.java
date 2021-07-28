@@ -53,7 +53,7 @@ public class FollowingPresenterTest {
     private FollowingService followingServiceSpy;
     private FollowingPresenter followingPresenterSpy;
     private FollowingPresenter.View followingViewMock;
-    private CountDownLatch latch;
+    private CountDownLatch countDownLatch;
 
     /**
      * Setup mocks and spies needed to let test cases control what users are returned
@@ -68,10 +68,12 @@ public class FollowingPresenterTest {
 
         // Create the mocks and spies needed to let test cases control what users are returned
         // FollowingService.
-        followingPresenterSpy = Mockito.spy(new FollowingPresenter(followingViewMock,
-                new User("", "", ""), new AuthToken()));
+        FollowingPresenter followingPresenter = new FollowingPresenter(followingViewMock,
+                new User("", "", ""), new AuthToken());
+        followingPresenterSpy = Mockito.spy(followingPresenter);
 
-        followingServiceSpy = Mockito.spy(new FollowingService(followingPresenterSpy));
+        FollowingService followingService = new FollowingService(followingPresenterSpy);
+        followingServiceSpy = Mockito.spy(followingService);
 
         fakeDataSpy = Mockito.spy(new FakeData());
 
@@ -94,19 +96,24 @@ public class FollowingPresenterTest {
         Mockito.doReturn(followingServiceSpy).when(followingPresenterSpy).getFollowingService(Mockito.any());
 
         // Configure followingViewMock to decrement the CountdownLatch when FollowingView.addItems
-        // and FollowingView.displayErrorMessage gets called, which unblocks the test case which
+        // and FollowingView.displayErrorMessage get called, which unblocks the test case which
         // is waiting for asynchronous operations to complete.
-        resetLatch();
+        resetCountDownLatch();
         Answer<Void> threadSyncAnswer = invocation -> {
-            latch.countDown();
+            countDownLatch.countDown();
             return null;
         };
         Mockito.doAnswer(threadSyncAnswer).when(followingViewMock).addItems(Mockito.anyList());
         Mockito.doAnswer(threadSyncAnswer).when(followingViewMock).displayErrorMessage(Mockito.anyString());
     }
 
-    private void resetLatch() {
-        latch = new CountDownLatch(1);
+    private void resetCountDownLatch() {
+        countDownLatch = new CountDownLatch(1);
+    }
+
+    private void awaitCountDownLatch() throws InterruptedException {
+        countDownLatch.await();
+        resetCountDownLatch();
     }
 
     /**
@@ -128,7 +135,7 @@ public class FollowingPresenterTest {
         Mockito.when(fakeDataSpy.getFakeUsers()).thenReturn(followees);
 
         followingPresenterSpy.loadMoreItems();
-        latch.await();
+        awaitCountDownLatch();
 
         assertNull(followingPresenterSpy.getLastFollowee());
         assertFalse(followingPresenterSpy.isHasMorePages());
@@ -141,15 +148,15 @@ public class FollowingPresenterTest {
 
     /**
      * Verify that {@link FollowingPresenter#loadMoreItems} works correctly when there
-     * is less than one page of followees.
+     * is one followee.
      */
     @Test
-    public void testLoadMoreItems_oneFollowerForUser_limitGreaterThanUsers() throws InterruptedException {
+    public void testLoadMoreItems_oneFolloweeForUser_limitGreaterThanUsers() throws InterruptedException {
         List<User> followees = Collections.singletonList(user2);
         Mockito.when(fakeDataSpy.getFakeUsers()).thenReturn(followees);
 
         followingPresenterSpy.loadMoreItems();
-        latch.await();
+        awaitCountDownLatch();
 
         assertEquals(user2, followingPresenterSpy.getLastFollowee());
         assertFalse(followingPresenterSpy.isHasMorePages());
@@ -162,15 +169,15 @@ public class FollowingPresenterTest {
 
     /**
      * Verify that {@link FollowingPresenter#loadMoreItems} works correctly when there
-     * is exactly one page of followees.
+     * are two followees.
      */
     @Test
-    public void testLoadMoreItems_twoFollowersForUser_limitGreaterThanUsers() throws InterruptedException {
+    public void testLoadMoreItems_twoFolloweesForUser_limitGreaterThanUsers() throws InterruptedException {
         List<User> followees = Arrays.asList(user2, user3);
         Mockito.when(fakeDataSpy.getFakeUsers()).thenReturn(followees);
 
         followingPresenterSpy.loadMoreItems();
-        latch.await();
+        awaitCountDownLatch();
 
         assertEquals(user3, followingPresenterSpy.getLastFollowee());
         assertFalse(followingPresenterSpy.isHasMorePages());
@@ -193,15 +200,14 @@ public class FollowingPresenterTest {
         Mockito.when(fakeDataSpy.getFakeUsers()).thenReturn(followees);
 
         followingPresenterSpy.loadMoreItems();
-        latch.await();
+        awaitCountDownLatch();
 
         assertEquals(user10, followingPresenterSpy.getLastFollowee());
         assertTrue(followingPresenterSpy.isHasMorePages());
         assertFalse(followingPresenterSpy.isLoading());
 
-        resetLatch();
         followingPresenterSpy.loadMoreItems();
-        latch.await();
+        awaitCountDownLatch();
 
         assertEquals(user20, followingPresenterSpy.getLastFollowee());
         assertFalse(followingPresenterSpy.isHasMorePages());
@@ -227,23 +233,21 @@ public class FollowingPresenterTest {
         Mockito.when(fakeDataSpy.getFakeUsers()).thenReturn(followees);
 
         followingPresenterSpy.loadMoreItems();
-        latch.await();
+        awaitCountDownLatch();
 
         assertEquals(user10, followingPresenterSpy.getLastFollowee());
         assertTrue(followingPresenterSpy.isHasMorePages());
         assertFalse(followingPresenterSpy.isLoading());
 
-        resetLatch();
         followingPresenterSpy.loadMoreItems();
-        latch.await();
+        awaitCountDownLatch();
 
         assertEquals(user20, followingPresenterSpy.getLastFollowee());
         assertTrue(followingPresenterSpy.isHasMorePages());
         assertFalse(followingPresenterSpy.isLoading());
 
-        resetLatch();
         followingPresenterSpy.loadMoreItems();
-        latch.await();
+        awaitCountDownLatch();
 
         assertEquals(user21, followingPresenterSpy.getLastFollowee());
         assertFalse(followingPresenterSpy.isHasMorePages());
