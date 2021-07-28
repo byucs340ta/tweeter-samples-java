@@ -50,7 +50,7 @@ public class FollowingPresenterTest {
     private final User user21 = new User("John", "Brown", MALE_IMAGE_URL);
 
     private ServerFacade serverFacadeMock;
-    private FollowingService followingServiceProxySpy;
+    private FollowingService followingServiceSpy;
     private FollowingPresenter followingPresenterSpy;
     private FollowingPresenter.View followingViewMock;
     private CountDownLatch countDownLatch;
@@ -75,25 +75,44 @@ public class FollowingPresenterTest {
         followingPresenterSpy = Mockito.spy(followingPresenter);
 
         FollowingService followingService = new FollowingService(followingPresenterSpy);
-        followingServiceProxySpy = Mockito.spy(followingService);
+        followingServiceSpy = Mockito.spy(followingService);
 
-        Mockito.doReturn(serverFacadeMock).when(followingServiceProxySpy).getServerFacade();
-        Mockito.doReturn(followingServiceProxySpy).when(followingPresenterSpy).getFollowingService(Mockito.any());
+        Mockito.doReturn(serverFacadeMock).when(followingServiceSpy).getServerFacade();
+        Mockito.doReturn(followingServiceSpy).when(followingPresenterSpy).getFollowingService(Mockito.any());
 
-        // Configure followingViewMock to decrement the CountdownLatch when FollowingView.addItems
-        // and FollowingView.displayErrorMessage get called, which unblocks the test case which
-        // is waiting for asynchronous operations to complete.
+        // Configure followingPresenterSpy to decrement the CountdownLatch after observer
+        // methods execute, thus unblocking test cases.
         resetCountDownLatch();
-        Answer<Void> threadSyncAnswer = invocation -> {
-            countDownLatch.countDown();
+
+        Answer<Void> followeesRetrievedAnswer = invocation -> {
+            invocation.callRealMethod();
+            decrementCountDownLatch();
             return null;
         };
-        Mockito.doAnswer(threadSyncAnswer).when(followingViewMock).addItems(Mockito.anyList());
-        Mockito.doAnswer(threadSyncAnswer).when(followingViewMock).displayErrorMessage(Mockito.anyString());
+        Answer<Void> followeesNotRetrievedAnswer = invocation -> {
+            invocation.callRealMethod();
+            decrementCountDownLatch();
+            return null;
+        };
+        Answer<Void> handleExceptionAnswer = invocation -> {
+            invocation.callRealMethod();
+            decrementCountDownLatch();
+            return null;
+        };
+        Mockito.doAnswer(followeesRetrievedAnswer).when(followingPresenterSpy)
+                .followeesRetrieved(Mockito.any(), Mockito.anyBoolean());
+        Mockito.doAnswer(followeesNotRetrievedAnswer).when(followingPresenterSpy)
+                .followeesNotRetrieved(Mockito.any());
+        Mockito.doAnswer(handleExceptionAnswer).when(followingPresenterSpy)
+                .handleException(Mockito.any());
     }
 
     private void resetCountDownLatch() {
         countDownLatch = new CountDownLatch(1);
+    }
+
+    private void decrementCountDownLatch() {
+        countDownLatch.countDown();
     }
 
     private void awaitCountDownLatch() throws InterruptedException {
