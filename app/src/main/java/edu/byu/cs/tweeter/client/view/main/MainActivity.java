@@ -16,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import edu.byu.cs.tweeter.R;
+import edu.byu.cs.tweeter.client.cache.Cache;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.client.view.util.ImageUtils;
@@ -25,8 +26,9 @@ import edu.byu.cs.tweeter.client.view.util.ImageUtils;
  */
 public class MainActivity extends AppCompatActivity {
 
+    private static final String LOG_TAG = "MainActivity";
+
     public static final String CURRENT_USER_KEY = "CurrentUser";
-    public static final String AUTH_TOKEN_KEY = "AuthTokenKey";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
             throw new RuntimeException("User not passed to activity");
         }
 
-        AuthToken authToken = (AuthToken) getIntent().getSerializableExtra(AUTH_TOKEN_KEY);
+        AuthToken authToken = Cache.getInstance().getCurrUserAuthToken();
 
         SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager(), user, authToken);
         ViewPager viewPager = findViewById(R.id.view_pager);

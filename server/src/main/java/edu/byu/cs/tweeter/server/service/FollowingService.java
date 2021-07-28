@@ -1,14 +1,13 @@
 package edu.byu.cs.tweeter.server.service;
 
-import edu.byu.cs.tweeter.model.service.FollowingService;
-import edu.byu.cs.tweeter.model.service.request.FollowingRequest;
-import edu.byu.cs.tweeter.model.service.response.FollowingResponse;
+import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
+import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
 import edu.byu.cs.tweeter.server.dao.FollowingDAO;
 
 /**
  * Contains the business logic for getting the users a user is following.
  */
-public class FollowingServiceImpl implements FollowingService {
+public class FollowingService {
 
     /**
      * Returns the users that the user specified in the request is following. Uses information in
@@ -19,7 +18,6 @@ public class FollowingServiceImpl implements FollowingService {
      * @param request contains the data required to fulfill the request.
      * @return the followees.
      */
-    @Override
     public FollowingResponse getFollowees(FollowingRequest request) {
         return getFollowingDAO().getFollowees(request);
     }

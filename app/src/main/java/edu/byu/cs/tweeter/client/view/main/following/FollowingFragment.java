@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.byu.cs.tweeter.R;
+import edu.byu.cs.tweeter.client.cache.Cache;
 import edu.byu.cs.tweeter.client.presenter.FollowingPresenter;
 import edu.byu.cs.tweeter.client.view.util.ImageUtils;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
@@ -33,7 +34,6 @@ public class FollowingFragment extends Fragment implements FollowingPresenter.Vi
 
     private static final String LOG_TAG = "FollowingFragment";
     private static final String USER_KEY = "UserKey";
-    private static final String AUTH_TOKEN_KEY = "AuthTokenKey";
 
     private static final int LOADING_DATA_VIEW = 0;
     private static final int ITEM_VIEW = 1;
@@ -53,9 +53,8 @@ public class FollowingFragment extends Fragment implements FollowingPresenter.Vi
     public static FollowingFragment newInstance(User user, AuthToken authToken) {
         FollowingFragment fragment = new FollowingFragment();
 
-        Bundle args = new Bundle(2);
+        Bundle args = new Bundle(1);
         args.putSerializable(USER_KEY, user);
-        args.putSerializable(AUTH_TOKEN_KEY, authToken);
 
         fragment.setArguments(args);
         return fragment;
@@ -97,7 +96,8 @@ public class FollowingFragment extends Fragment implements FollowingPresenter.Vi
         View view = inflater.inflate(R.layout.fragment_following, container, false);
 
         User user = (User) getArguments().getSerializable(USER_KEY);
-        AuthToken authToken = (AuthToken) getArguments().getSerializable(AUTH_TOKEN_KEY);
+
+        AuthToken authToken = Cache.getInstance().getCurrUserAuthToken();
 
         presenter = new FollowingPresenter(this, user, authToken);
 

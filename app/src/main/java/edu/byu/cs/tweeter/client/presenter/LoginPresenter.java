@@ -2,16 +2,15 @@ package edu.byu.cs.tweeter.client.presenter;
 
 import android.util.Log;
 
-import edu.byu.cs.tweeter.client.model.service.LoginServiceProxy;
+import edu.byu.cs.tweeter.client.cache.Cache;
+import edu.byu.cs.tweeter.client.model.service.LoginService;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
-import edu.byu.cs.tweeter.model.service.request.LoginRequest;
-import edu.byu.cs.tweeter.model.service.response.LoginResponse;
 
 /**
  * The presenter for the login functionality of the application.
  */
-public class LoginPresenter implements LoginServiceProxy.Observer {
+public class LoginPresenter implements LoginService.Observer {
 
     private static final String LOG_TAG = "LoginPresenter";
 
@@ -45,31 +44,37 @@ public class LoginPresenter implements LoginServiceProxy.Observer {
      * @param password the user's password.
      */
     public void initiateLogin(String username, String password) {
-        LoginRequest loginRequest = new LoginRequest(username, password);
-        LoginServiceProxy loginService = new LoginServiceProxy(this);
-        loginService.login(loginRequest);
+        LoginService loginService = new LoginService(this);
+        loginService.login(username, password);
     }
 
     /**
      * Invoked when the login request completes if the login was successful. Notifies the view of
      * the successful login.
      *
-     * @param loginResponse the response.
+     * @param user the logged-in user.
+     * @param authToken the session auth token.
      */
     @Override
-    public void loginSuccessful(LoginResponse loginResponse) {
-        view.loginSuccessful(loginResponse.getUser(), loginResponse.getAuthToken());
+    public void loginSuccessful(User user, AuthToken authToken) {
+        // Cache user session information
+        Cache.getInstance().setCurrUser(user);
+        Cache.getInstance().setCurrUserAuthToken(authToken);
+
+        view.loginSuccessful(user, authToken);
     }
 
     /**
      * Invoked when the login request completes if the login request was unsuccessful. Notifies the
      * view of the unsuccessful login.
      *
-     * @param loginResponse the response.
+     * @param message error message.
      */
     @Override
-    public void loginUnsuccessful(LoginResponse loginResponse) {
-        view.loginUnsuccessful("Failed to login. " + loginResponse.getMessage());
+    public void loginUnsuccessful(String message) {
+        String errorMessage = "Failed to login: " + message;
+        Log.e(LOG_TAG, errorMessage);
+        view.loginUnsuccessful(errorMessage);
     }
 
     /**
@@ -80,7 +85,8 @@ public class LoginPresenter implements LoginServiceProxy.Observer {
      */
     @Override
     public void handleException(Exception exception) {
-        Log.e(LOG_TAG, exception.getMessage(), exception);
-        view.loginUnsuccessful("Failed to login because of exception: " + exception.getMessage());
+        String errorMessage = "Failed to login because of exception: " + exception.getMessage();
+        Log.e(LOG_TAG, errorMessage, exception);
+        view.loginUnsuccessful(errorMessage);
     }
 }

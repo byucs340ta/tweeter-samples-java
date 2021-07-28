@@ -1,4 +1,4 @@
-package edu.byu.cs.tweeter.client.view;
+package edu.byu.cs.tweeter.client.view.login;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -60,7 +60,6 @@ public class LoginActivity extends AppCompatActivity implements LoginPresenter.V
         Intent intent = new Intent(this, MainActivity.class);
 
         intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
-        intent.putExtra(MainActivity.AUTH_TOKEN_KEY, authToken);
 
         loginInToast.cancel();
         startActivity(intent);

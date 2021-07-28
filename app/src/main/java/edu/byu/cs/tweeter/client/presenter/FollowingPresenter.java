@@ -4,17 +4,14 @@ import android.util.Log;
 
 import java.util.List;
 
+import edu.byu.cs.tweeter.client.model.service.FollowingService;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
-import edu.byu.cs.tweeter.client.model.service.FollowingServiceProxy;
-import edu.byu.cs.tweeter.model.service.FollowingService;
-import edu.byu.cs.tweeter.model.service.request.FollowingRequest;
-import edu.byu.cs.tweeter.model.service.response.FollowingResponse;
 
 /**
  * The presenter for the "following" functionality of the application.
  */
-public class FollowingPresenter implements FollowingServiceProxy.Observer {
+public class FollowingPresenter implements FollowingService.Observer {
 
     private static final String LOG_TAG = "FollowingPresenter";
     private static final int PAGE_SIZE = 10;
@@ -49,28 +46,39 @@ public class FollowingPresenter implements FollowingServiceProxy.Observer {
         this.authToken = authToken;
     }
 
-    User getLastFollowee() {
+    public synchronized User getLastFollowee() {
         return lastFollowee;
     }
 
-    boolean isHasMorePages() {
+    private synchronized void setLastFollowee(User lastFollowee) {
+        this.lastFollowee = lastFollowee;
+    }
+
+    public synchronized boolean isHasMorePages() {
         return hasMorePages;
     }
 
-    boolean isLoading() {
+    private synchronized void setHasMorePages(boolean hasMorePages) {
+        this.hasMorePages = hasMorePages;
+    }
+
+    public synchronized boolean isLoading() {
         return isLoading;
+    }
+
+    private synchronized void setLoading(boolean loading) {
+        isLoading = loading;
     }
 
     /**
      * Called by the view to request that another page of "following" users be loaded.
      */
-    public void loadMoreItems() {
+    public synchronized void loadMoreItems() {
         if (!isLoading && hasMorePages) {
             isLoading = true;
             view.setLoading(true);
 
-            FollowingRequest request = new FollowingRequest(user.getAlias(), PAGE_SIZE, (lastFollowee == null ? null : lastFollowee.getAlias()));
-            getFollowing(request);
+            getFollowing(authToken, user, PAGE_SIZE, (lastFollowee == null ? null : lastFollowee));
         }
     }
 
@@ -80,10 +88,13 @@ public class FollowingPresenter implements FollowingServiceProxy.Observer {
      * followees after any that were returned for a previous request. This is an asynchronous
      * operation.
      *
-     * @param request contains the data required to fulfill the request.
+     * @param authToken the session auth token.
+     * @param targetUser the user for whom followees are being retrieved.
+     * @param limit the maximum number of followees to return.
+     * @param lastFollowee the last followee returned in the previous request (can be null).
      */
-    public void getFollowing(FollowingRequest request) {
-        getFollowingService(this).getFollowees(request);
+    public void getFollowing(AuthToken authToken, User targetUser, int limit, User lastFollowee) {
+        getFollowingService(this).getFollowees(authToken, targetUser, limit, lastFollowee);
     }
 
     /**
@@ -93,24 +104,33 @@ public class FollowingPresenter implements FollowingServiceProxy.Observer {
      *
      * @return the instance.
      */
-    public FollowingServiceProxy getFollowingService(FollowingServiceProxy.Observer observer) {
-        return new FollowingServiceProxy(observer);
+    public FollowingService getFollowingService(FollowingService.Observer observer) {
+        return new FollowingService(observer);
     }
 
     /**
      * Adds new followees retrieved asynchronously from the service to the view.
      *
-     * @param followingResponse the response.
+     * @param followees list of retrieved followees.
+     * @param hasMorePages whether or not there are remaining followees to retrieve.
      */
     @Override
-    public void followeesRetrieved(FollowingResponse followingResponse) {
-        List<User> followees = followingResponse.getFollowees();
-
-        lastFollowee = (followees.size() > 0) ? followees.get(followees.size() -1) : null;
-        hasMorePages = followingResponse.getHasMorePages();
+    public synchronized void followeesRetrieved(List<User> followees, boolean hasMorePages) {
+        this.lastFollowee = (followees.size() > 0) ? followees.get(followees.size() -1) : null;
+        this.hasMorePages = hasMorePages;
 
         view.setLoading(false);
         view.addItems(followees);
+        isLoading = false;
+    }
+
+    @Override
+    public synchronized void followeesNotRetrieved(String message) {
+        String errorMessage = "Failed to retrieve followees: " + message;
+        Log.e(LOG_TAG, errorMessage);
+
+        view.setLoading(false);
+        view.displayErrorMessage(errorMessage);
         isLoading = false;
     }
 
@@ -121,11 +141,12 @@ public class FollowingPresenter implements FollowingServiceProxy.Observer {
      * @param exception the exception.
      */
     @Override
-    public void handleException(Exception exception) {
-        Log.e(LOG_TAG, exception.getMessage(), exception);
+    public synchronized void handleException(Exception exception) {
+        String errorMessage = "Failed to retrieve followees because of exception: " + exception.getMessage();
+        Log.e(LOG_TAG, errorMessage, exception);
 
         view.setLoading(false);
-        view.displayErrorMessage(exception.getMessage());
+        view.displayErrorMessage(errorMessage);
         isLoading = false;
     }
 }

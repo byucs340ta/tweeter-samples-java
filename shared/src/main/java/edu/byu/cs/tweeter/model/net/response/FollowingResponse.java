@@ -1,12 +1,13 @@
-package edu.byu.cs.tweeter.model.service.response;
+package edu.byu.cs.tweeter.model.net.response;
 
 import java.util.List;
 import java.util.Objects;
 
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
 
 /**
- * A paged response for a {@link edu.byu.cs.tweeter.model.service.request.FollowingRequest}.
+ * A paged response for a {@link FollowingRequest}.
  */
 public class FollowingResponse extends PagedResponse {
 

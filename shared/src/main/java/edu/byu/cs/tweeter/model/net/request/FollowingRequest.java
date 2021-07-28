@@ -1,4 +1,4 @@
-package edu.byu.cs.tweeter.model.service.request;
+package edu.byu.cs.tweeter.model.net.request;
 
 /**
  * Contains all the information needed to make a request to have the server return the next page of

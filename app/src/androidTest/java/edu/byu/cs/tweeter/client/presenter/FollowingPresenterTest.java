@@ -11,11 +11,11 @@ import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 
 import edu.byu.cs.tweeter.client.model.net.ServerFacade;
-import edu.byu.cs.tweeter.client.model.service.FollowingServiceProxy;
+import edu.byu.cs.tweeter.client.model.service.FollowingService;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.TweeterRemoteException;
-import edu.byu.cs.tweeter.model.service.response.FollowingResponse;
+import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -50,38 +50,60 @@ public class FollowingPresenterTest {
     private final User user21 = new User("John", "Brown", MALE_IMAGE_URL);
 
     private ServerFacade serverFacadeMock;
-    private FollowingServiceProxy followingServiceProxySpy;
+    private FollowingService followingServiceProxySpy;
     private FollowingPresenter followingPresenterSpy;
     private FollowingPresenter.View followingViewMock;
-    private CountDownLatch latch;
+    private CountDownLatch countDownLatch;
 
+    /**
+     * Setup mocks and spies needed to let test cases control what users are returned
+     * by {@link FollowingService}.
+     * Setup mock {@link FollowingPresenter} to verify that {@link FollowingPresenter}
+     * correctly calls view methods.
+     */
     @Before
     public void setup() {
-        serverFacadeMock = Mockito.mock(ServerFacade.class);
-
+        // followingViewMock is used to verify that FollowingPresenter correctly calls view methods.
         followingViewMock = Mockito.mock(FollowingPresenter.View.class);
 
-        followingPresenterSpy = Mockito.spy(new FollowingPresenter(followingViewMock,
-                new User("", "", ""), new AuthToken()));
+        // Create the mocks and spies needed to let test cases control what users are returned
+        // FollowingService.
+        serverFacadeMock = Mockito.mock(ServerFacade.class);
 
-        followingServiceProxySpy = Mockito.spy(new FollowingServiceProxy(followingPresenterSpy));
+        FollowingPresenter followingPresenter = new FollowingPresenter(followingViewMock,
+                new User("", "", ""), new AuthToken());
+        followingPresenterSpy = Mockito.spy(followingPresenter);
+
+        FollowingService followingService = new FollowingService(followingPresenterSpy);
+        followingServiceProxySpy = Mockito.spy(followingService);
 
         Mockito.doReturn(serverFacadeMock).when(followingServiceProxySpy).getServerFacade();
         Mockito.doReturn(followingServiceProxySpy).when(followingPresenterSpy).getFollowingService(Mockito.any());
 
-        resetLatch();
+        // Configure followingViewMock to decrement the CountdownLatch when FollowingView.addItems
+        // and FollowingView.displayErrorMessage get called, which unblocks the test case which
+        // is waiting for asynchronous operations to complete.
+        resetCountDownLatch();
         Answer<Void> threadSyncAnswer = invocation -> {
-            latch.countDown();
+            countDownLatch.countDown();
             return null;
         };
         Mockito.doAnswer(threadSyncAnswer).when(followingViewMock).addItems(Mockito.anyList());
         Mockito.doAnswer(threadSyncAnswer).when(followingViewMock).displayErrorMessage(Mockito.anyString());
     }
 
-    private void resetLatch() {
-        latch = new CountDownLatch(1);
+    private void resetCountDownLatch() {
+        countDownLatch = new CountDownLatch(1);
     }
 
+    private void awaitCountDownLatch() throws InterruptedException {
+        countDownLatch.await();
+        resetCountDownLatch();
+    }
+
+    /**
+     * Verify that {@link FollowingPresenter} has the correct initial state.
+     */
     @Test
     public void testInitialPresenterState() {
         assertNull(followingPresenterSpy.getLastFollowee());
@@ -89,6 +111,9 @@ public class FollowingPresenterTest {
         assertFalse(followingPresenterSpy.isLoading());
     }
 
+    /**
+     * Verify that {@link FollowingPresenter#loadMoreItems} works correctly when there are no followees.
+     */
     @Test
     public void testLoadMoreItems_noFolloweesForUser()
             throws InterruptedException, IOException, TweeterRemoteException {
@@ -97,7 +122,7 @@ public class FollowingPresenterTest {
         Mockito.doReturn(response1).when(serverFacadeMock).getFollowees(Mockito.any(), Mockito.any());
 
         followingPresenterSpy.loadMoreItems();
-        latch.await();
+        awaitCountDownLatch();
 
         assertNull(followingPresenterSpy.getLastFollowee());
         assertFalse(followingPresenterSpy.isHasMorePages());
@@ -108,15 +133,19 @@ public class FollowingPresenterTest {
         Mockito.verify(followingViewMock).addItems(Collections.emptyList());
     }
 
+    /**
+     * Verify that {@link FollowingPresenter#loadMoreItems} works correctly when there
+     * is one followee.
+     */
     @Test
-    public void testLoadMoreItems_oneFollowerForUser_limitGreaterThanUsers()
+    public void testLoadMoreItems_oneFolloweeForUser_limitGreaterThanUsers()
             throws InterruptedException, IOException, TweeterRemoteException {
 
         FollowingResponse response1 = new FollowingResponse(Collections.singletonList(user2), false);
         Mockito.doReturn(response1).when(serverFacadeMock).getFollowees(Mockito.any(), Mockito.any());
 
         followingPresenterSpy.loadMoreItems();
-        latch.await();
+        awaitCountDownLatch();
 
         assertEquals(user2, followingPresenterSpy.getLastFollowee());
         assertFalse(followingPresenterSpy.isHasMorePages());
@@ -127,15 +156,19 @@ public class FollowingPresenterTest {
         Mockito.verify(followingViewMock).addItems(Collections.singletonList(user2));
     }
 
+    /**
+     * Verify that {@link FollowingPresenter#loadMoreItems} works correctly when there
+     * are two followees.
+     */
     @Test
-    public void testLoadMoreItems_twoFollowersForUser_limitEqualsUsers()
+    public void testLoadMoreItems_twoFolloweesForUser_limitEqualsUsers()
             throws InterruptedException, IOException, TweeterRemoteException {
 
         FollowingResponse response1 = new FollowingResponse(Arrays.asList(user2, user3), false);
         Mockito.doReturn(response1).when(serverFacadeMock).getFollowees(Mockito.any(), Mockito.any());
 
         followingPresenterSpy.loadMoreItems();
-        latch.await();
+        awaitCountDownLatch();
 
         assertEquals(user3, followingPresenterSpy.getLastFollowee());
         assertFalse(followingPresenterSpy.isHasMorePages());
@@ -146,6 +179,10 @@ public class FollowingPresenterTest {
         Mockito.verify(followingViewMock).addItems(Arrays.asList(user2, user3));
     }
 
+    /**
+     * Verify that {@link FollowingPresenter#loadMoreItems} works correctly when there
+     * are exactly two pages of followees.
+     */
     @Test
     public void testLoadMoreItems_limitLessThanUsers_endsOnPageBoundary()
             throws InterruptedException, IOException, TweeterRemoteException {
@@ -157,15 +194,14 @@ public class FollowingPresenterTest {
         Mockito.doReturn(response1, response2).when(serverFacadeMock).getFollowees(Mockito.any(), Mockito.any());
 
         followingPresenterSpy.loadMoreItems();
-        latch.await();
+        awaitCountDownLatch();
 
         assertEquals(user10, followingPresenterSpy.getLastFollowee());
         assertTrue(followingPresenterSpy.isHasMorePages());
         assertFalse(followingPresenterSpy.isLoading());
 
-        resetLatch();
         followingPresenterSpy.loadMoreItems();
-        latch.await();
+        awaitCountDownLatch();
 
         assertEquals(user20, followingPresenterSpy.getLastFollowee());
         assertFalse(followingPresenterSpy.isHasMorePages());
@@ -179,6 +215,10 @@ public class FollowingPresenterTest {
                 user15, user16, user17, user18, user19, user20));
     }
 
+    /**
+     * Verify that {@link FollowingPresenter#loadMoreItems} works correctly when there
+     * are between two and three pages of followees.
+     */
     @Test
     public void testLoadMoreItems_limitLessThanUsers_notEndsOnPageBoundary()
             throws InterruptedException, IOException, TweeterRemoteException {
@@ -191,23 +231,21 @@ public class FollowingPresenterTest {
         Mockito.doReturn(response1, response2, response3).when(serverFacadeMock).getFollowees(Mockito.any(), Mockito.any());
 
         followingPresenterSpy.loadMoreItems();
-        latch.await();
+        awaitCountDownLatch();
 
         assertEquals(user10, followingPresenterSpy.getLastFollowee());
         assertTrue(followingPresenterSpy.isHasMorePages());
         assertFalse(followingPresenterSpy.isLoading());
 
-        resetLatch();
         followingPresenterSpy.loadMoreItems();
-        latch.await();
+        awaitCountDownLatch();
 
         assertEquals(user20, followingPresenterSpy.getLastFollowee());
         assertTrue(followingPresenterSpy.isHasMorePages());
         assertFalse(followingPresenterSpy.isLoading());
 
-        resetLatch();
         followingPresenterSpy.loadMoreItems();
-        latch.await();
+        awaitCountDownLatch();
 
         assertEquals(user21, followingPresenterSpy.getLastFollowee());
         assertFalse(followingPresenterSpy.isHasMorePages());

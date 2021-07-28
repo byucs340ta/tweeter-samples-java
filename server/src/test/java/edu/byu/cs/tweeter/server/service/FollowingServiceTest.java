@@ -8,16 +8,16 @@ import org.mockito.Mockito;
 import java.util.Arrays;
 
 import edu.byu.cs.tweeter.model.domain.User;
-import edu.byu.cs.tweeter.model.service.request.FollowingRequest;
-import edu.byu.cs.tweeter.model.service.response.FollowingResponse;
+import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
+import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
 import edu.byu.cs.tweeter.server.dao.FollowingDAO;
 
-public class FollowingServiceImplTest {
+public class FollowingServiceTest {
 
     private FollowingRequest request;
     private FollowingResponse expectedResponse;
     private FollowingDAO mockFollowingDAO;
-    private FollowingServiceImpl followingServiceImplSpy;
+    private FollowingService followingServiceSpy;
 
     @BeforeEach
     public void setup() {
@@ -38,17 +38,17 @@ public class FollowingServiceImplTest {
         mockFollowingDAO = Mockito.mock(FollowingDAO.class);
         Mockito.when(mockFollowingDAO.getFollowees(request)).thenReturn(expectedResponse);
 
-        followingServiceImplSpy = Mockito.spy(FollowingServiceImpl.class);
-        Mockito.when(followingServiceImplSpy.getFollowingDAO()).thenReturn(mockFollowingDAO);
+        followingServiceSpy = Mockito.spy(FollowingService.class);
+        Mockito.when(followingServiceSpy.getFollowingDAO()).thenReturn(mockFollowingDAO);
     }
 
     /**
-     * Verify that the {@link FollowingServiceImpl#getFollowees(FollowingRequest)}
+     * Verify that the {@link FollowingService#getFollowees(FollowingRequest)}
      * method returns the same result as the {@link FollowingDAO} class.
      */
     @Test
     public void testGetFollowees_validRequest_correctResponse() {
-        FollowingResponse response = followingServiceImplSpy.getFollowees(request);
+        FollowingResponse response = followingServiceSpy.getFollowees(request);
         Assertions.assertEquals(expectedResponse, response);
     }
 }
