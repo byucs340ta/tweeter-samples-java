@@ -179,7 +179,7 @@ public class FollowingService {
 
         // This method is public so it can be accessed by test cases
         public Pair<List<User>, Boolean> getFollowees() {
-            return getFakeData().getPageOfUsers((User) lastFollowee, limit, targetUser);
+            return getFakeData().getPageOfUsers(lastFollowee, limit, targetUser);
         }
 
         // This method is public so it can be accessed by test cases

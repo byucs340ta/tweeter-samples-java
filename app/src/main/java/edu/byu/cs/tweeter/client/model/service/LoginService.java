@@ -94,7 +94,7 @@ public class LoginService {
     /**
      * Background task that logs in a user (i.e., starts a session).
      */
-    private class LoginTask extends BackgroundTask {
+    private static class LoginTask extends BackgroundTask {
 
         private static final String LOG_TAG = "LoginTask";
 
