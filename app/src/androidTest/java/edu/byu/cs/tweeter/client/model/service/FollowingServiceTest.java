@@ -6,6 +6,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
@@ -93,9 +94,12 @@ public class FollowingServiceTest {
                         invalidRequest_limit, invalidRequest_lastFollowee,
                         new FollowingService.MessageHandler(Looper.getMainLooper(), observer));
         invalidRequest_GetFollowingTaskSpy = Mockito.spy(invalidRequest_GetFollowingTask);
-        Answer<Void> runTaskAnswer = invocation -> {
-            invalidRequest_GetFollowingTaskSpy.sendFailedMessage(failureResponse_message);
-            return null;
+        Answer<Void> runTaskAnswer = new Answer<Void>() {
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                invalidRequest_GetFollowingTaskSpy.sendFailedMessage(failureResponse_message);
+                return null;
+            }
         };
         Mockito.doAnswer(runTaskAnswer).when(invalidRequest_GetFollowingTaskSpy).runTask();
         Mockito.when(followingServiceSpy.getGetFollowingTask(invalidRequest_authToken, invalidRequest_targetUser,

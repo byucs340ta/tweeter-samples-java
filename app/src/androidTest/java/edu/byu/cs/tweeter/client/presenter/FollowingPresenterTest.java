@@ -5,6 +5,7 @@ import android.os.Looper;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.util.Arrays;
@@ -79,16 +80,19 @@ public class FollowingPresenterTest {
 
         FollowingService.MessageHandler messageHandler =
                 new FollowingService.MessageHandler(Looper.getMainLooper(), followingPresenterSpy);
-        Answer<FollowingService.GetFollowingTask> getFollowingTaskAnswer = (invocation) -> {
-            FollowingService.GetFollowingTask task = new FollowingService.GetFollowingTask(
-                    invocation.getArgument(0),
-                    invocation.getArgument(1),
-                    invocation.getArgument(2),
-                    invocation.getArgument(3),
-                    messageHandler);
-            FollowingService.GetFollowingTask taskSpy = Mockito.spy(task);
-            Mockito.when(taskSpy.getFakeData()).thenReturn(fakeDataSpy);
-            return taskSpy;
+        Answer<FollowingService.GetFollowingTask> getFollowingTaskAnswer = new Answer<FollowingService.GetFollowingTask>() {
+            @Override
+            public FollowingService.GetFollowingTask answer(InvocationOnMock invocation) throws Throwable {
+                FollowingService.GetFollowingTask task = new FollowingService.GetFollowingTask(
+                        invocation.getArgument(0),
+                        invocation.getArgument(1),
+                        invocation.getArgument(2),
+                        invocation.getArgument(3),
+                        messageHandler);
+                FollowingService.GetFollowingTask taskSpy = Mockito.spy(task);
+                Mockito.when(taskSpy.getFakeData()).thenReturn(fakeDataSpy);
+                return taskSpy;
+            }
         };
         Mockito.doAnswer(getFollowingTaskAnswer)
                 .when(followingServiceSpy)
@@ -99,20 +103,29 @@ public class FollowingPresenterTest {
         // methods execute, thus unblocking test cases.
         resetCountDownLatch();
 
-        Answer<Void> followeesRetrievedAnswer = invocation -> {
-            invocation.callRealMethod();
-            decrementCountDownLatch();
-            return null;
+        Answer<Void> followeesRetrievedAnswer = new Answer<Void>() {
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                invocation.callRealMethod();
+                decrementCountDownLatch();
+                return null;
+            }
         };
-        Answer<Void> followeesNotRetrievedAnswer = invocation -> {
-            invocation.callRealMethod();
-            decrementCountDownLatch();
-            return null;
+        Answer<Void> followeesNotRetrievedAnswer = new Answer<Void>() {
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                invocation.callRealMethod();
+                decrementCountDownLatch();
+                return null;
+            }
         };
-        Answer<Void> handleExceptionAnswer = invocation -> {
-            invocation.callRealMethod();
-            decrementCountDownLatch();
-            return null;
+        Answer<Void> handleExceptionAnswer = new Answer<Void>() {
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                invocation.callRealMethod();
+                decrementCountDownLatch();
+                return null;
+            }
         };
         Mockito.doAnswer(followeesRetrievedAnswer).when(followingPresenterSpy)
                 .followeesRetrieved(Mockito.any(), Mockito.anyBoolean());
