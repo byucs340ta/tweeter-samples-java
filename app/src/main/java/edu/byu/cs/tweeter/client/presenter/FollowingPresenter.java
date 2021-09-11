@@ -4,14 +4,14 @@ import android.util.Log;
 
 import java.util.List;
 
-import edu.byu.cs.tweeter.client.model.service.FollowingService;
+import edu.byu.cs.tweeter.client.model.service.FollowService;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 
 /**
  * The presenter for the "following" functionality of the application.
  */
-public class FollowingPresenter implements FollowingService.Observer {
+public class FollowingPresenter implements FollowService.Observer {
 
     private static final String LOG_TAG = "FollowingPresenter";
     private static final int PAGE_SIZE = 10;
@@ -98,14 +98,14 @@ public class FollowingPresenter implements FollowingService.Observer {
     }
 
     /**
-     * Returns an instance of {@link FollowingService}. Allows mocking of the FollowingService class
-     * for testing purposes. All usages of FollowingService should get their FollowingService
+     * Returns an instance of {@link FollowService}. Allows mocking of the FollowService class
+     * for testing purposes. All usages of FollowService should get their FollowService
      * instance from this method to allow for mocking of the instance.
      *
      * @return the instance.
      */
-    public FollowingService getFollowingService(FollowingService.Observer observer) {
-        return new FollowingService(observer);
+    public FollowService getFollowingService(FollowService.Observer observer) {
+        return new FollowService(observer);
     }
 
     /**
@@ -115,7 +115,7 @@ public class FollowingPresenter implements FollowingService.Observer {
      * @param hasMorePages whether or not there are more followees to be retrieved.
      */
     @Override
-    public void followeesRetrieved(List<User> followees, boolean hasMorePages) {
+    public void handleSuccess(List<User> followees, boolean hasMorePages) {
         setLastFollowee((followees.size() > 0) ? followees.get(followees.size() - 1) : null);
         setHasMorePages(hasMorePages);
 
@@ -130,7 +130,7 @@ public class FollowingPresenter implements FollowingService.Observer {
      * @param message error message.
      */
     @Override
-    public void followeesNotRetrieved(String message) {
+    public void handleFailure(String message) {
         String errorMessage = "Failed to retrieve followees: " + message;
         Log.e(LOG_TAG, errorMessage);
 

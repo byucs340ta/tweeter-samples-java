@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import edu.byu.cs.tweeter.client.model.service.FollowingService;
+import edu.byu.cs.tweeter.client.model.service.FollowService;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.util.FakeData;
@@ -51,14 +51,14 @@ public class FollowingPresenterTest {
     private final User user21 = new User("John", "Brown", MALE_IMAGE_URL);
 
     private FakeData fakeDataSpy;
-    private FollowingService followingServiceSpy;
+    private FollowService followingServiceSpy;
     private FollowingPresenter followingPresenterSpy;
     private FollowingPresenter.View followingViewMock;
     private CountDownLatch countDownLatch;
 
     /**
      * Setup mocks and spies needed to let test cases control what users are returned
-     * by {@link FollowingService}.
+     * by {@link FollowService}.
      * Setup mock {@link FollowingPresenter} to verify that {@link FollowingPresenter}
      * correctly calls view methods.
      */
@@ -68,28 +68,28 @@ public class FollowingPresenterTest {
         followingViewMock = Mockito.mock(FollowingPresenter.View.class);
 
         // Create the mocks and spies needed to let test cases control what users are returned
-        // FollowingService.
+        // FollowService.
         FollowingPresenter followingPresenter = new FollowingPresenter(followingViewMock,
                 new User("", "", ""), new AuthToken());
         followingPresenterSpy = Mockito.spy(followingPresenter);
 
-        FollowingService followingService = new FollowingService(followingPresenterSpy);
+        FollowService followingService = new FollowService(followingPresenterSpy);
         followingServiceSpy = Mockito.spy(followingService);
 
         fakeDataSpy = Mockito.spy(new FakeData());
 
-        FollowingService.MessageHandler messageHandler =
-                new FollowingService.MessageHandler(Looper.getMainLooper(), followingPresenterSpy);
-        Answer<FollowingService.GetFollowingTask> getFollowingTaskAnswer = new Answer<FollowingService.GetFollowingTask>() {
+        FollowService.MessageHandler messageHandler =
+                new FollowService.MessageHandler(Looper.getMainLooper(), followingPresenterSpy);
+        Answer<FollowService.GetFollowingTask> getFollowingTaskAnswer = new Answer<FollowService.GetFollowingTask>() {
             @Override
-            public FollowingService.GetFollowingTask answer(InvocationOnMock invocation) throws Throwable {
-                FollowingService.GetFollowingTask task = new FollowingService.GetFollowingTask(
+            public FollowService.GetFollowingTask answer(InvocationOnMock invocation) throws Throwable {
+                FollowService.GetFollowingTask task = new FollowService.GetFollowingTask(
                         invocation.getArgument(0),
                         invocation.getArgument(1),
                         invocation.getArgument(2),
                         invocation.getArgument(3),
                         messageHandler);
-                FollowingService.GetFollowingTask taskSpy = Mockito.spy(task);
+                FollowService.GetFollowingTask taskSpy = Mockito.spy(task);
                 Mockito.when(taskSpy.getFakeData()).thenReturn(fakeDataSpy);
                 return taskSpy;
             }
@@ -128,9 +128,9 @@ public class FollowingPresenterTest {
             }
         };
         Mockito.doAnswer(followeesRetrievedAnswer).when(followingPresenterSpy)
-                .followeesRetrieved(Mockito.any(), Mockito.anyBoolean());
+                .handleSuccess(Mockito.any(), Mockito.anyBoolean());
         Mockito.doAnswer(followeesNotRetrievedAnswer).when(followingPresenterSpy)
-                .followeesNotRetrieved(Mockito.any());
+                .handleFailure(Mockito.any());
         Mockito.doAnswer(handleExceptionAnswer).when(followingPresenterSpy)
                 .handleException(Mockito.any());
     }

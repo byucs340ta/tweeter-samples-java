@@ -18,7 +18,7 @@ import edu.byu.cs.tweeter.util.Pair;
 /**
  * Contains the business logic for getting the users a user is following.
  */
-public class FollowingService {
+public class FollowService {
 
     private final Observer observer;
 
@@ -27,8 +27,8 @@ public class FollowingService {
      * asynchronous operations complete.
      */
     public interface Observer {
-        void followeesRetrieved(List<User> followees, boolean hasMorePages);
-        void followeesNotRetrieved(String message);
+        void handleSuccess(List<User> followees, boolean hasMorePages);
+        void handleFailure(String message);
         void handleException(Exception exception);
     }
 
@@ -37,7 +37,7 @@ public class FollowingService {
      *
      * @param observer the observer who wants to be notified when any asynchronous operations complete.
      */
-    public FollowingService(Observer observer) {
+    public FollowService(Observer observer) {
         // An assertion would be better, but Android doesn't support Java assertions
         if(observer == null) {
             throw new NullPointerException();
@@ -95,10 +95,10 @@ public class FollowingService {
             if (success) {
                 List<User> followees = (List<User>) bundle.getSerializable(GetFollowingTask.FOLLOWEES_KEY);
                 boolean hasMorePages = bundle.getBoolean(GetFollowingTask.MORE_PAGES_KEY);
-                observer.followeesRetrieved(followees, hasMorePages);
+                observer.handleSuccess(followees, hasMorePages);
             } else if (bundle.containsKey(GetFollowingTask.MESSAGE_KEY)) {
                 String errorMessage = bundle.getString(GetFollowingTask.MESSAGE_KEY);
-                observer.followeesNotRetrieved(errorMessage);
+                observer.handleFailure(errorMessage);
             } else if (bundle.containsKey(GetFollowingTask.EXCEPTION_KEY)) {
                 Exception ex = (Exception) bundle.getSerializable(GetFollowingTask.EXCEPTION_KEY);
                 observer.handleException(ex);

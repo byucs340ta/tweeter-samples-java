@@ -35,11 +35,11 @@ public class FollowingServiceTest {
 
     private String failureResponse_message;
 
-    private FollowingService.GetFollowingTask validRequest_GetFollowingTaskSpy;
-    private FollowingService.GetFollowingTask invalidRequest_GetFollowingTaskSpy;
+    private FollowService.GetFollowingTask validRequest_GetFollowingTaskSpy;
+    private FollowService.GetFollowingTask invalidRequest_GetFollowingTaskSpy;
 
     private FollowingServiceObserver observer;
-    private FollowingService followingServiceSpy;
+    private FollowService followingServiceSpy;
 
     private CountDownLatch countDownLatch;
 
@@ -71,28 +71,28 @@ public class FollowingServiceTest {
 
         failureResponse_message = "An exception occurred";
 
-        // Setup an observer for the FollowingService
+        // Setup an observer for the FollowService
         observer = new FollowingServiceObserver();
         resetCountDownLatch();
 
-        // Create a FollowingService instance and wrap it with a spy that will use mock tasks
-        FollowingService followingService = new FollowingService(observer);
+        // Create a FollowService instance and wrap it with a spy that will use mock tasks
+        FollowService followingService = new FollowService(observer);
         followingServiceSpy = Mockito.spy(followingService);
 
-        FollowingService.GetFollowingTask validRequest_GetFollowingTask =
-                new FollowingService.GetFollowingTask(validRequest_authToken, validRequest_targetUser,
+        FollowService.GetFollowingTask validRequest_GetFollowingTask =
+                new FollowService.GetFollowingTask(validRequest_authToken, validRequest_targetUser,
                         validRequest_limit, validRequest_lastFollowee,
-                        new FollowingService.MessageHandler(Looper.getMainLooper(), observer));
+                        new FollowService.MessageHandler(Looper.getMainLooper(), observer));
         validRequest_GetFollowingTaskSpy = Mockito.spy(validRequest_GetFollowingTask);
         Pair<List<User>, Boolean> successResponse_followees = new Pair<>(this.successResponse_followees, successResponse_hasMorePages);
         Mockito.when(validRequest_GetFollowingTaskSpy.getFollowees()).thenReturn(successResponse_followees);
         Mockito.when(followingServiceSpy.getGetFollowingTask(validRequest_authToken, validRequest_targetUser,
                         validRequest_limit, validRequest_lastFollowee)).thenReturn(validRequest_GetFollowingTaskSpy);
 
-        FollowingService.GetFollowingTask invalidRequest_GetFollowingTask =
-                new FollowingService.GetFollowingTask(invalidRequest_authToken, invalidRequest_targetUser,
+        FollowService.GetFollowingTask invalidRequest_GetFollowingTask =
+                new FollowService.GetFollowingTask(invalidRequest_authToken, invalidRequest_targetUser,
                         invalidRequest_limit, invalidRequest_lastFollowee,
-                        new FollowingService.MessageHandler(Looper.getMainLooper(), observer));
+                        new FollowService.MessageHandler(Looper.getMainLooper(), observer));
         invalidRequest_GetFollowingTaskSpy = Mockito.spy(invalidRequest_GetFollowingTask);
         Answer<Void> runTaskAnswer = new Answer<Void>() {
             @Override
@@ -116,11 +116,11 @@ public class FollowingServiceTest {
     }
 
     /**
-     * A {@link FollowingService.Observer} implementation that can be used to get the values eventually
-     * returned by an asynchronous call on the {@link FollowingService}. Counts down on the
+     * A {@link FollowService.Observer} implementation that can be used to get the values eventually
+     * returned by an asynchronous call on the {@link FollowService}. Counts down on the
      * countDownLatch so tests can wait for the background thread to call a method on the observer.
      */
-    private class FollowingServiceObserver implements FollowingService.Observer {
+    private class FollowingServiceObserver implements FollowService.Observer {
 
         private List<User> followees;
         private boolean hasMorePages;
@@ -128,7 +128,7 @@ public class FollowingServiceTest {
         private Exception exception;
 
         @Override
-        public void followeesRetrieved(List<User> followees, boolean hasMorePages) {
+        public void handleSuccess(List<User> followees, boolean hasMorePages) {
             this.followees = followees;
             this.hasMorePages = hasMorePages;
             this.failureMessage = null;
@@ -138,7 +138,7 @@ public class FollowingServiceTest {
         }
 
         @Override
-        public void followeesNotRetrieved(String message) {
+        public void handleFailure(String message) {
             this.followees = null;
             this.hasMorePages = false;
             this.failureMessage = message;
@@ -168,7 +168,7 @@ public class FollowingServiceTest {
     }
 
     /**
-     * Verify that when the {@link FollowingService#getFollowees(AuthToken, User, int, User)} is called with
+     * Verify that when the {@link FollowService#getFollowees(AuthToken, User, int, User)} is called with
      * a valid request, a valid success response is returned.
      */
     @Test
@@ -201,7 +201,7 @@ public class FollowingServiceTest {
     }
 
     /**
-     * Verify that for unsuccessful requests, the {@link FollowingService} returns
+     * Verify that for unsuccessful requests, the {@link FollowService} returns
      * the failure result.
      */
     @Test
