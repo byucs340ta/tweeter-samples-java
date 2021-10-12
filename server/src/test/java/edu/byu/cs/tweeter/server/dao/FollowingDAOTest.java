@@ -9,11 +9,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
 import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
 
 class FollowingDAOTest {
+    private final AuthToken testUserAuthToken = new AuthToken();
 
     private final User user1 = new User("Daffy", "Duck", "");
     private final User user2 = new User("Fred", "Flintstone", "");
@@ -36,7 +38,7 @@ class FollowingDAOTest {
         List<User> followees = Collections.emptyList();
         Mockito.when(followingDAOSpy.getDummyFollowees()).thenReturn(followees);
 
-        FollowingRequest request = new FollowingRequest(user1.getAlias(), 10, null);
+        FollowingRequest request = new FollowingRequest(testUserAuthToken, user1.getAlias(), 10, null);
         FollowingResponse response = followingDAOSpy.getFollowees(request);
 
         Assertions.assertEquals(0, response.getFollowees().size());
@@ -48,7 +50,7 @@ class FollowingDAOTest {
         List<User> followees = Collections.singletonList(user2);
         Mockito.when(followingDAOSpy.getDummyFollowees()).thenReturn(followees);
 
-        FollowingRequest request = new FollowingRequest(user1.getAlias(), 10, null);
+        FollowingRequest request = new FollowingRequest(testUserAuthToken, user1.getAlias(), 10, null);
         FollowingResponse response = followingDAOSpy.getFollowees(request);
 
         Assertions.assertEquals(1, response.getFollowees().size());
@@ -61,7 +63,7 @@ class FollowingDAOTest {
         List<User> followees = Arrays.asList(user2, user3);
         Mockito.when(followingDAOSpy.getDummyFollowees()).thenReturn(followees);
 
-        FollowingRequest request = new FollowingRequest(user3.getAlias(), 2, null);
+        FollowingRequest request = new FollowingRequest(testUserAuthToken, user3.getAlias(), 2, null);
         FollowingResponse response = followingDAOSpy.getFollowees(request);
 
         Assertions.assertEquals(2, response.getFollowees().size());
@@ -75,7 +77,7 @@ class FollowingDAOTest {
         List<User> followees = Arrays.asList(user2, user3, user4, user5, user6, user7);
         Mockito.when(followingDAOSpy.getDummyFollowees()).thenReturn(followees);
 
-        FollowingRequest request = new FollowingRequest(user5.getAlias(), 2, null);
+        FollowingRequest request = new FollowingRequest(testUserAuthToken, user5.getAlias(), 2, null);
         FollowingResponse response = followingDAOSpy.getFollowees(request);
 
         // Verify first page
@@ -85,7 +87,7 @@ class FollowingDAOTest {
         Assertions.assertTrue(response.getHasMorePages());
 
         // Get and verify second page
-        request = new FollowingRequest(user5.getAlias(), 2, response.getFollowees().get(1).getAlias());
+        request = new FollowingRequest(testUserAuthToken, user5.getAlias(), 2, response.getFollowees().get(1).getAlias());
         response = followingDAOSpy.getFollowees(request);
 
         Assertions.assertEquals(2, response.getFollowees().size());
@@ -94,7 +96,7 @@ class FollowingDAOTest {
         Assertions.assertTrue(response.getHasMorePages());
 
         // Get and verify third page
-        request = new FollowingRequest(user5.getAlias(), 2, response.getFollowees().get(1).getAlias());
+        request = new FollowingRequest(testUserAuthToken, user5.getAlias(), 2, response.getFollowees().get(1).getAlias());
         response = followingDAOSpy.getFollowees(request);
 
         Assertions.assertEquals(2, response.getFollowees().size());
@@ -109,7 +111,7 @@ class FollowingDAOTest {
         List<User> followees = Arrays.asList(user2, user3, user4, user5, user6, user7, user8);
         Mockito.when(followingDAOSpy.getDummyFollowees()).thenReturn(followees);
 
-        FollowingRequest request = new FollowingRequest(user6.getAlias(), 2, null);
+        FollowingRequest request = new FollowingRequest(testUserAuthToken, user6.getAlias(), 2, null);
         FollowingResponse response = followingDAOSpy.getFollowees(request);
 
         // Verify first page
@@ -119,7 +121,7 @@ class FollowingDAOTest {
         Assertions.assertTrue(response.getHasMorePages());
 
         // Get and verify second page
-        request = new FollowingRequest(user6.getAlias(), 2, response.getFollowees().get(1).getAlias());
+        request = new FollowingRequest(testUserAuthToken, user6.getAlias(), 2, response.getFollowees().get(1).getAlias());
         response = followingDAOSpy.getFollowees(request);
 
         Assertions.assertEquals(2, response.getFollowees().size());
@@ -128,7 +130,7 @@ class FollowingDAOTest {
         Assertions.assertTrue(response.getHasMorePages());
 
         // Get and verify third page
-        request = new FollowingRequest(user6.getAlias(), 2, response.getFollowees().get(1).getAlias());
+        request = new FollowingRequest(testUserAuthToken, user6.getAlias(), 2, response.getFollowees().get(1).getAlias());
         response = followingDAOSpy.getFollowees(request);
 
         Assertions.assertEquals(2, response.getFollowees().size());
@@ -137,7 +139,7 @@ class FollowingDAOTest {
         Assertions.assertTrue(response.getHasMorePages());
 
         // Get and verify fourth page
-        request = new FollowingRequest(user6.getAlias(), 2, response.getFollowees().get(1).getAlias());
+        request = new FollowingRequest(testUserAuthToken, user6.getAlias(), 2, response.getFollowees().get(1).getAlias());
         response = followingDAOSpy.getFollowees(request);
 
         Assertions.assertEquals(1, response.getFollowees().size());

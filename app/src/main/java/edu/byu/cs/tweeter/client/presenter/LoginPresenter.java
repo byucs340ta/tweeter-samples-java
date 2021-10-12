@@ -6,6 +6,7 @@ import edu.byu.cs.tweeter.client.cache.Cache;
 import edu.byu.cs.tweeter.client.model.service.LoginService;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.request.LoginRequest;
 
 /**
  * The presenter for the login functionality of the application.
@@ -45,7 +46,8 @@ public class LoginPresenter implements LoginService.Observer {
      */
     public void initiateLogin(String username, String password) {
         LoginService loginService = new LoginService(this);
-        loginService.login(username, password);
+        LoginRequest loginRequest = new LoginRequest(username, password);
+        loginService.login(loginRequest);
     }
 
     /**

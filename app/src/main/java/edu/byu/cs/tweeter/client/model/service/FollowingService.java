@@ -11,7 +11,6 @@ import java.io.Serializable;
 import java.util.List;
 
 import edu.byu.cs.tweeter.client.model.net.ServerFacade;
-import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.TweeterRemoteException;
 import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
@@ -56,13 +55,10 @@ public class FollowingService {
      * followees after any that were returned in a previous request.
      * This is an asynchronous operation.
      *
-     * @param authToken the session auth token.
-     * @param targetUser the user for whom followees are being retrieved.
-     * @param limit the maximum number of followees to return.
-     * @param lastFollowee the last followee returned in the previous request (can be null).
+     * @param followingRequest a request for a page of followees.
      */
-    public void getFollowees(AuthToken authToken, User targetUser, int limit, User lastFollowee) {
-        GetFollowingTask followingTask = getGetFollowingTask(authToken, targetUser, limit, lastFollowee);
+    public void getFollowees(FollowingRequest followingRequest) {
+        GetFollowingTask followingTask = getGetFollowingTask(followingRequest);
         BackgroundTaskUtils.runTask(followingTask);
     }
 
@@ -85,8 +81,8 @@ public class FollowingService {
      * @return the instance.
      */
     // This method is public so it can be accessed by test cases
-    public GetFollowingTask getGetFollowingTask(AuthToken authToken, User targetUser, int limit, User lastFollowee) {
-        return new GetFollowingTask(authToken, targetUser, limit, lastFollowee,
+    public GetFollowingTask getGetFollowingTask(FollowingRequest request) {
+        return new GetFollowingTask(request,
                 new MessageHandler(Looper.getMainLooper(), observer));
     }
 
@@ -130,33 +126,11 @@ public class FollowingService {
         public static final String FOLLOWEES_KEY = "followees";
         public static final String MORE_PAGES_KEY = "more-pages";
 
-        /**
-         * Auth token for logged-in user.
-         */
-        protected AuthToken authToken;
-        /**
-         * The user whose following is being retrieved.
-         * (This can be any user, not just the currently logged-in user.)
-         */
-        protected User targetUser;
-        /**
-         * Maximum number of followed users to return (i.e., page size).
-         */
-        protected int limit;
-        /**
-         * The last person being followed returned in the previous page of results (can be null).
-         * This allows the new page to begin where the previous page ended.
-         */
-        protected User lastFollowee;
+        private FollowingRequest request;
 
-        public GetFollowingTask(AuthToken authToken, User targetUser, int limit, User lastFollowee,
-                                Handler messageHandler) {
+        public GetFollowingTask(FollowingRequest request, Handler messageHandler) {
             super(messageHandler);
-
-            this.authToken = authToken;
-            this.targetUser = targetUser;
-            this.limit = limit;
-            this.lastFollowee = lastFollowee;
+            this.request = request;
         }
 
         protected void sendSuccessMessage(List<User> followees, boolean hasMorePages) {
@@ -172,10 +146,6 @@ public class FollowingService {
         @Override
         protected void runTask() {
             try {
-                FollowingRequest request = new FollowingRequest(
-                        ((targetUser != null) ? targetUser.getAlias() : null), limit,
-                        ((lastFollowee != null) ? lastFollowee.getAlias() : null));
-                // TODO: PASS IN AUTH TOKEN
                 FollowingResponse response = getServerFacade().getFollowees(request, URL_PATH);
 
                 if(response.isSuccess()) {

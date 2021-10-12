@@ -13,19 +13,13 @@ import java.util.concurrent.CountDownLatch;
 import edu.byu.cs.tweeter.client.model.net.ServerFacade;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
 import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
 
 public class FollowingServiceTest {
 
-    private AuthToken valid_authToken;
-    private User valid_targetUser;
-    private int valid_limit;
-    private User valid_lastFollowee;
-
-    private AuthToken invalid_authToken;
-    private User invalid_targetUser;
-    private int invalid_limit;
-    private User invalid_lastFollowee;
+    private FollowingRequest validRequest;
+    private FollowingRequest invalidRequest;
 
     private List<User> success_followees;
     private boolean success_hasMorePages;
@@ -54,15 +48,8 @@ public class FollowingServiceTest {
                 "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/daisy_duck.png");
 
         // Setup valid and invalid requests to be used in the tests
-        valid_authToken = new AuthToken();
-        valid_targetUser = currentUser;
-        valid_limit = 3;
-        valid_lastFollowee = null;
-
-        invalid_authToken = null;
-        invalid_targetUser = null;
-        invalid_limit = 0;
-        invalid_lastFollowee = null;
+        validRequest = new FollowingRequest(new AuthToken(), currentUser.getAlias(), 3, null);
+        invalidRequest = new FollowingRequest(null, null, 0, null);
 
         // Setup success and failure responses to be used in the tests
         success_followees = Arrays.asList(resultUser1, resultUser2, resultUser3);
@@ -195,7 +182,7 @@ public class FollowingServiceTest {
     public void testGetFollowees_validRequest_correctResponse() throws InterruptedException {
         FollowingService followingServiceSpy = setupFollowingServiceSpy(successResponse);
 
-        followingServiceSpy.getFollowees(valid_authToken, valid_targetUser, valid_limit, valid_lastFollowee);
+        followingServiceSpy.getFollowees(validRequest);
         awaitCountDownLatch();
 
         assertEquals(successResponse, observer);
@@ -209,7 +196,7 @@ public class FollowingServiceTest {
     public void testGetFollowees_validRequest_loadsProfileImages() throws InterruptedException {
         FollowingService followingServiceSpy = setupFollowingServiceSpy(successResponse);
 
-        followingServiceSpy.getFollowees(valid_authToken, valid_targetUser, valid_limit, valid_lastFollowee);
+        followingServiceSpy.getFollowees(validRequest);
         awaitCountDownLatch();
 
         List<User> followees = observer.getFollowees();
@@ -228,7 +215,7 @@ public class FollowingServiceTest {
     public void testGetFollowees_invalidRequest_returnsNoFollowees() throws InterruptedException {
         FollowingService followingServiceSpy = setupFollowingServiceSpy(failureResponse);
 
-        followingServiceSpy.getFollowees(invalid_authToken, invalid_targetUser, invalid_limit, invalid_lastFollowee);
+        followingServiceSpy.getFollowees(invalidRequest);
         awaitCountDownLatch();
 
         assertEquals(failureResponse, observer);
@@ -244,17 +231,16 @@ public class FollowingServiceTest {
 
         // Create a task spy for the FollowingService that throws an exception when it's loadImages method is called
         FollowingService.GetFollowingTask getFollowingTask =
-                followingServiceSpy.getGetFollowingTask(valid_authToken, valid_targetUser, valid_limit, valid_lastFollowee);
+                followingServiceSpy.getGetFollowingTask(validRequest);
         FollowingService.GetFollowingTask getFollowingTaskSpy = Mockito.spy(getFollowingTask);
 
         IOException exception = new IOException();
         Mockito.doThrow(exception).when(getFollowingTaskSpy).loadImages(Mockito.any());
 
         // Make the FollowingService spy use the RetrieveFollowingTask spy
-        Mockito.when(followingServiceSpy.getGetFollowingTask(Mockito.any(), Mockito.any(),
-                Mockito.anyInt(), Mockito.any())).thenReturn(getFollowingTaskSpy);
+        Mockito.when(followingServiceSpy.getGetFollowingTask(Mockito.any())).thenReturn(getFollowingTaskSpy);
 
-        followingServiceSpy.getFollowees(valid_authToken, valid_targetUser, valid_limit, valid_lastFollowee);
+        followingServiceSpy.getFollowees(validRequest);
         awaitCountDownLatch();
 
         Assert.assertEquals(exception, observer.getException());

@@ -7,6 +7,7 @@ import java.util.List;
 import edu.byu.cs.tweeter.client.model.service.FollowingService;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
 
 /**
  * The presenter for the "following" functionality of the application.
@@ -94,7 +95,11 @@ public class FollowingPresenter implements FollowingService.Observer {
      * @param lastFollowee the last followee returned in the previous request (can be null).
      */
     public void getFollowing(AuthToken authToken, User targetUser, int limit, User lastFollowee) {
-        getFollowingService(this).getFollowees(authToken, targetUser, limit, lastFollowee);
+        String targetUserAlias = (targetUser == null) ? null : targetUser.getAlias();
+        String lastFolloweeAlias = (lastFollowee == null) ? null : lastFollowee.getAlias();
+        FollowingRequest request = new FollowingRequest(authToken, targetUserAlias, limit, lastFolloweeAlias);
+
+        getFollowingService(this).getFollowees(request);
     }
 
     /**

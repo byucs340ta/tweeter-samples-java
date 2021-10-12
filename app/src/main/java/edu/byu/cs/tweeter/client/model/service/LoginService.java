@@ -44,11 +44,10 @@ public class LoginService {
     /**
      * Makes an asynchronous login request.
      *
-     * @param username the user's username.
-     * @param password the user's password.
+     * @param loginRequest the request that contains the login information.
      */
-    public void login(String username, String password) {
-        LoginTask loginTask = getLoginTask(username, password);
+    public void login(LoginRequest loginRequest) {
+        LoginTask loginTask = getLoginTask(loginRequest);
         BackgroundTaskUtils.runTask(loginTask);
     }
 
@@ -71,8 +70,8 @@ public class LoginService {
      *
      * @return the instance.
      */
-    LoginTask getLoginTask(String username, String password) {
-        return new LoginTask(username, password, new MessageHandler(Looper.getMainLooper(), observer));
+    LoginTask getLoginTask(LoginRequest loginRequest) {
+        return new LoginTask(loginRequest, new MessageHandler(Looper.getMainLooper(), observer));
     }
 
     /**
@@ -125,11 +124,11 @@ public class LoginService {
          */
         private String password;
 
-        public LoginTask(String username, String password, Handler messageHandler) {
+        public LoginTask(LoginRequest loginRequest, Handler messageHandler) {
             super(messageHandler);
 
-            this.username = username;
-            this.password = password;
+            this.username = loginRequest.getUsername();
+            this.password = loginRequest.getPassword();
         }
 
         @Override
