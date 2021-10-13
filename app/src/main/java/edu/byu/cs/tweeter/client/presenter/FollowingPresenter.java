@@ -25,6 +25,8 @@ public class FollowingPresenter implements FollowingService.Observer {
     private boolean hasMorePages = true;
     private boolean isLoading = false;
 
+    private FollowingService followingService;
+
     /**
      * The interface by which this presenter communicates with it's view.
      */
@@ -110,7 +112,11 @@ public class FollowingPresenter implements FollowingService.Observer {
      * @return the instance.
      */
     public FollowingService getFollowingService(FollowingService.Observer observer) {
-        return new FollowingService(observer);
+        if(followingService == null) {
+            followingService = new FollowingService(observer);
+        }
+
+        return followingService;
     }
 
     /**
