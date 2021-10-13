@@ -23,6 +23,8 @@ public class LoginActivity extends AppCompatActivity implements LoginPresenter.V
     private static final String LOG_TAG = "LoginActivity";
     private Toast loginInToast;
 
+    private LoginPresenter presenter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,7 +45,7 @@ public class LoginActivity extends AppCompatActivity implements LoginPresenter.V
                 loginInToast.show();
 
                 // It doesn't matter what values we put here. We will be logged in with a hard-coded dummy user.
-                LoginPresenter presenter = new LoginPresenter(LoginActivity.this);
+                presenter = new LoginPresenter(LoginActivity.this);
                 presenter.initiateLogin("dummyUserName", "dummyPassword");
             }
         });

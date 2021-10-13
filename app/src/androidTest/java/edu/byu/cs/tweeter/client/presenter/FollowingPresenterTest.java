@@ -3,6 +3,7 @@ package edu.byu.cs.tweeter.client.presenter;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
@@ -84,25 +85,34 @@ public class FollowingPresenterTest {
         // methods execute, thus unblocking test cases.
         resetCountDownLatch();
 
-        Answer<Void> followeesRetrievedAnswer = invocation -> {
-            invocation.callRealMethod();
-            decrementCountDownLatch();
-            return null;
+        Answer<Void> followeesRetrievedAnswer = new Answer<Void>() {
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                invocation.callRealMethod();
+                decrementCountDownLatch();
+                return null;
+            }
         };
-        Answer<Void> followeesNotRetrievedAnswer = invocation -> {
-            invocation.callRealMethod();
-            decrementCountDownLatch();
-            return null;
+        Answer<Void> followeesNotRetrievedAnswer = new Answer<Void>() {
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                invocation.callRealMethod();
+                decrementCountDownLatch();
+                return null;
+            }
         };
-        Answer<Void> handleExceptionAnswer = invocation -> {
-            invocation.callRealMethod();
-            decrementCountDownLatch();
-            return null;
+        Answer<Void> handleExceptionAnswer = new Answer<Void>() {
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                invocation.callRealMethod();
+                decrementCountDownLatch();
+                return null;
+            }
         };
         Mockito.doAnswer(followeesRetrievedAnswer).when(followingPresenterSpy)
-                .followeesRetrieved(Mockito.any(), Mockito.anyBoolean());
+                .handleSuccess(Mockito.any(), Mockito.anyBoolean());
         Mockito.doAnswer(followeesNotRetrievedAnswer).when(followingPresenterSpy)
-                .followeesNotRetrieved(Mockito.any());
+                .handleFailure(Mockito.any());
         Mockito.doAnswer(handleExceptionAnswer).when(followingPresenterSpy)
                 .handleException(Mockito.any());
     }

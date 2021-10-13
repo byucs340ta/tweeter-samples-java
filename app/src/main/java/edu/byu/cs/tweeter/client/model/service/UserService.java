@@ -15,19 +15,21 @@ import edu.byu.cs.tweeter.model.net.response.LoginResponse;
 /**
  * Contains the business logic to support the login operation.
  */
-public class LoginService {
+public class UserService {
 
     private static final String URL_PATH = "/login";
 
     private final Observer observer;
+
+    private ServerFacade serverFacade;
 
     /**
      * An observer interface to be implemented by observers who want to be notified when
      * asynchronous operations complete.
      */
     public interface Observer {
-        void loginSuccessful(User user, AuthToken authToken);
-        void loginUnsuccessful(String message);
+        void handleSuccess(User user, AuthToken authToken);
+        void handleFailure(String message);
         void handleException(Exception exception);
     }
 
@@ -37,7 +39,7 @@ public class LoginService {
      * @param observer the observer who wants to be notified when any asynchronous operations
      *                 complete.
      */
-     public LoginService(Observer observer) {
+     public UserService(Observer observer) {
         this.observer = observer;
      }
 
@@ -59,7 +61,11 @@ public class LoginService {
      * @return the instance.
      */
     ServerFacade getServerFacade() {
-        return new ServerFacade();
+        if(serverFacade == null) {
+            serverFacade = new ServerFacade();
+        }
+
+        return serverFacade;
     }
 
 
@@ -94,10 +100,10 @@ public class LoginService {
             if (success) {
                 User user = (User) bundle.getSerializable(LoginTask.USER_KEY);
                 AuthToken authToken = (AuthToken) bundle.getSerializable(LoginTask.AUTH_TOKEN_KEY);
-                observer.loginSuccessful(user, authToken);
+                observer.handleSuccess(user, authToken);
             } else if (bundle.containsKey(LoginTask.MESSAGE_KEY)) {
                 String errorMessage = bundle.getString(LoginTask.MESSAGE_KEY);
-                observer.loginUnsuccessful(errorMessage);
+                observer.handleFailure(errorMessage);
             } else if (bundle.containsKey(LoginTask.EXCEPTION_KEY)) {
                 Exception ex = (Exception) bundle.getSerializable(LoginTask.EXCEPTION_KEY);
                 observer.handleException(ex);

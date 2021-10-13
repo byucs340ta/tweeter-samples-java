@@ -126,7 +126,7 @@ public class FollowingPresenter implements FollowService.Observer {
      * @param hasMorePages whether or not there are remaining followees to retrieve.
      */
     @Override
-    public void followeesRetrieved(List<User> followees, boolean hasMorePages) {
+    public void handleSuccess(List<User> followees, boolean hasMorePages) {
         setLastFollowee((followees.size() > 0) ? followees.get(followees.size() -1) : null);
         setHasMorePages(hasMorePages);
 
@@ -141,7 +141,7 @@ public class FollowingPresenter implements FollowService.Observer {
      * @param message error message.
      */
     @Override
-    public void followeesNotRetrieved(String message) {
+    public void handleFailure(String message) {
         String errorMessage = "Failed to retrieve followees: " + message;
         Log.e(LOG_TAG, errorMessage);
 

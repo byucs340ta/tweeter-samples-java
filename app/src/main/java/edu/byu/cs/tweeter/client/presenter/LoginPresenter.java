@@ -3,7 +3,7 @@ package edu.byu.cs.tweeter.client.presenter;
 import android.util.Log;
 
 import edu.byu.cs.tweeter.client.cache.Cache;
-import edu.byu.cs.tweeter.client.model.service.LoginService;
+import edu.byu.cs.tweeter.client.model.service.UserService;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.LoginRequest;
@@ -11,7 +11,7 @@ import edu.byu.cs.tweeter.model.net.request.LoginRequest;
 /**
  * The presenter for the login functionality of the application.
  */
-public class LoginPresenter implements LoginService.Observer {
+public class LoginPresenter implements UserService.Observer {
 
     private static final String LOG_TAG = "LoginPresenter";
 
@@ -45,9 +45,9 @@ public class LoginPresenter implements LoginService.Observer {
      * @param password the user's password.
      */
     public void initiateLogin(String username, String password) {
-        LoginService loginService = new LoginService(this);
+        UserService userService = new UserService(this);
         LoginRequest loginRequest = new LoginRequest(username, password);
-        loginService.login(loginRequest);
+        userService.login(loginRequest);
     }
 
     /**
@@ -58,7 +58,7 @@ public class LoginPresenter implements LoginService.Observer {
      * @param authToken the session auth token.
      */
     @Override
-    public void loginSuccessful(User user, AuthToken authToken) {
+    public void handleSuccess(User user, AuthToken authToken) {
         // Cache user session information
         Cache.getInstance().setCurrUser(user);
         Cache.getInstance().setCurrUserAuthToken(authToken);
@@ -73,7 +73,7 @@ public class LoginPresenter implements LoginService.Observer {
      * @param message error message.
      */
     @Override
-    public void loginUnsuccessful(String message) {
+    public void handleFailure(String message) {
         String errorMessage = "Failed to login: " + message;
         Log.e(LOG_TAG, errorMessage);
         view.loginUnsuccessful(errorMessage);

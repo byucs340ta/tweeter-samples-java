@@ -16,7 +16,7 @@ import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
 import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
 
-public class FollowingServiceTest {
+public class FollowServiceTest {
 
     private FollowingRequest validRequest;
     private FollowingRequest invalidRequest;
@@ -28,7 +28,7 @@ public class FollowingServiceTest {
     private String failure_message;
     private FollowingResponse failureResponse;
 
-    private FollowingServiceObserver observer;
+    private FollowServiceObserver observer;
 
     private CountDownLatch countDownLatch;
 
@@ -60,7 +60,7 @@ public class FollowingServiceTest {
         failureResponse = new FollowingResponse(failure_message);
 
         // Setup an observer for the FollowService
-        observer = new FollowingServiceObserver();
+        observer = new FollowServiceObserver();
 
         // Prepare the countdown latch
         resetCountDownLatch();
@@ -81,7 +81,7 @@ public class FollowingServiceTest {
      * on the countDownLatch so tests can wait for the background thread to call a method on the
      * observer.
      */
-    private class FollowingServiceObserver implements FollowService.Observer {
+    private class FollowServiceObserver implements FollowService.Observer {
 
         private boolean success;
         private String message;
@@ -90,7 +90,7 @@ public class FollowingServiceTest {
         private Exception exception;
 
         @Override
-        public void followeesRetrieved(List<User> followees, boolean hasMorePages) {
+        public void handleSuccess(List<User> followees, boolean hasMorePages) {
             this.success = true;
             this.message = null;
             this.followees = followees;
@@ -101,7 +101,7 @@ public class FollowingServiceTest {
         }
 
         @Override
-        public void followeesNotRetrieved(String message) {
+        public void handleFailure(String message) {
             this.success = false;
             this.message = message;
             this.followees = null;
@@ -158,7 +158,7 @@ public class FollowingServiceTest {
         return followServiceSpy;
     }
 
-    private static void assertEquals(FollowingResponse response, FollowingServiceObserver observer) {
+    private static void assertEquals(FollowingResponse response, FollowServiceObserver observer) {
         Assert.assertEquals(response.isSuccess(), observer.isSuccess());
         Assert.assertEquals(response.getMessage(), observer.getMessage());
         Assert.assertEquals(response.getFollowees(), observer.getFollowees());
@@ -166,7 +166,7 @@ public class FollowingServiceTest {
         Assert.assertEquals(null, observer.getException());
     }
 
-    private static void assertEquals(Exception exception, FollowingServiceObserver observer) {
+    private static void assertEquals(Exception exception, FollowServiceObserver observer) {
         Assert.assertEquals(false, observer.isSuccess());
         Assert.assertEquals(null, observer.getMessage());
         Assert.assertEquals(null, observer.getFollowees());

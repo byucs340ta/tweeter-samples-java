@@ -25,13 +25,15 @@ public class FollowService {
 
     private final Observer observer;
 
+    private ServerFacade serverFacade;
+
     /**
      * An observer interface to be implemented by observers who want to be notified when
      * asynchronous operations complete.
      */
     public interface Observer {
-        void followeesRetrieved(List<User> followees, boolean hasMorePages);
-        void followeesNotRetrieved(String message);
+        void handleSuccess(List<User> followees, boolean hasMorePages);
+        void handleFailure(String message);
         void handleException(Exception exception);
     }
 
@@ -70,7 +72,11 @@ public class FollowService {
      * @return the instance.
      */
     public ServerFacade getServerFacade() {
-        return new ServerFacade();
+        if(serverFacade == null) {
+            serverFacade = new ServerFacade();
+        }
+
+        return serverFacade;
     }
 
     /**
@@ -106,16 +112,17 @@ public class FollowService {
             if (success) {
                 List<User> followees = (List<User>) bundle.getSerializable(GetFollowingTask.FOLLOWEES_KEY);
                 boolean hasMorePages = bundle.getBoolean(GetFollowingTask.MORE_PAGES_KEY);
-                observer.followeesRetrieved(followees, hasMorePages);
+                observer.handleSuccess(followees, hasMorePages);
             } else if (bundle.containsKey(GetFollowingTask.MESSAGE_KEY)) {
                 String errorMessage = bundle.getString(GetFollowingTask.MESSAGE_KEY);
-                observer.followeesNotRetrieved(errorMessage);
+                observer.handleFailure(errorMessage);
             } else if (bundle.containsKey(GetFollowingTask.EXCEPTION_KEY)) {
                 Exception ex = (Exception) bundle.getSerializable(GetFollowingTask.EXCEPTION_KEY);
                 observer.handleException(ex);
             }
         }
     }
+
     /**
      * Background task that retrieves a page of other users being followed by a specified user.
      */
