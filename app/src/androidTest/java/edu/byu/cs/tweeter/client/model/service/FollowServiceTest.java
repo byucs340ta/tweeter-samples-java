@@ -21,11 +21,7 @@ public class FollowServiceTest {
     private FollowingRequest validRequest;
     private FollowingRequest invalidRequest;
 
-    private List<User> success_followees;
-    private boolean success_hasMorePages;
     private FollowingResponse successResponse;
-
-    private String failure_message;
     private FollowingResponse failureResponse;
 
     private FollowServiceObserver observer;
@@ -52,12 +48,10 @@ public class FollowServiceTest {
         invalidRequest = new FollowingRequest(null, null, 0, null);
 
         // Setup success and failure responses to be used in the tests
-        success_followees = Arrays.asList(resultUser1, resultUser2, resultUser3);
-        success_hasMorePages = false;
-        successResponse = new FollowingResponse(success_followees, success_hasMorePages);
+        List<User> success_followees = Arrays.asList(resultUser1, resultUser2, resultUser3);
+        successResponse = new FollowingResponse(success_followees, false);
 
-        failure_message = "An exception occurred";
-        failureResponse = new FollowingResponse(failure_message);
+        failureResponse = new FollowingResponse("An exception occurred");
 
         // Setup an observer for the FollowService
         observer = new FollowServiceObserver();
@@ -163,14 +157,14 @@ public class FollowServiceTest {
         Assert.assertEquals(response.getMessage(), observer.getMessage());
         Assert.assertEquals(response.getFollowees(), observer.getFollowees());
         Assert.assertEquals(response.getHasMorePages(), observer.getHasMorePages());
-        Assert.assertEquals(null, observer.getException());
+        Assert.assertNull(observer.getException());
     }
 
     private static void assertEquals(Exception exception, FollowServiceObserver observer) {
-        Assert.assertEquals(false, observer.isSuccess());
-        Assert.assertEquals(null, observer.getMessage());
-        Assert.assertEquals(null, observer.getFollowees());
-        Assert.assertEquals(false, observer.getHasMorePages());
+        Assert.assertFalse(observer.isSuccess());
+        Assert.assertNull(observer.getMessage());
+        Assert.assertNull(observer.getFollowees());
+        Assert.assertFalse(observer.getHasMorePages());
         Assert.assertEquals(exception, observer.getException());
     }
 

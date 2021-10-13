@@ -133,7 +133,7 @@ public class FollowService {
         public static final String FOLLOWEES_KEY = "followees";
         public static final String MORE_PAGES_KEY = "more-pages";
 
-        private FollowingRequest request;
+        private final FollowingRequest request;
 
         public GetFollowingTask(FollowingRequest request, Handler messageHandler) {
             super(messageHandler);

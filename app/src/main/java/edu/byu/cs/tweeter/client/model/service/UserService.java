@@ -124,11 +124,11 @@ public class UserService {
         /**
          * The user's username (or "alias" or "handle"). E.g., "@susan".
          */
-        private String username;
+        private final String username;
         /**
          * The user's password.
          */
-        private String password;
+        private final String password;
 
         public LoginTask(LoginRequest loginRequest, Handler messageHandler) {
             super(messageHandler);
