@@ -45,7 +45,6 @@ public class ServerFacade {
      *                other information required to satisfy the request.
      * @return the followees.
      */
-    // TODO: PASS IN AUTH TOKEN
     public FollowingResponse getFollowees(FollowingRequest request, String urlPath)
             throws IOException, TweeterRemoteException {
 
