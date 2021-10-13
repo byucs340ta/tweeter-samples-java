@@ -33,7 +33,7 @@ public class FollowingServiceTest {
     private CountDownLatch countDownLatch;
 
     /**
-     * Create a FollowingService spy that uses a mock ServerFacade to return known responses to
+     * Create a FollowService spy that uses a mock ServerFacade to return known responses to
      * requests.
      */
     @Before
@@ -59,7 +59,7 @@ public class FollowingServiceTest {
         failure_message = "An exception occurred";
         failureResponse = new FollowingResponse(failure_message);
 
-        // Setup an observer for the FollowingService
+        // Setup an observer for the FollowService
         observer = new FollowingServiceObserver();
 
         // Prepare the countdown latch
@@ -76,12 +76,12 @@ public class FollowingServiceTest {
     }
 
     /**
-     * A {@link FollowingService.Observer} implementation that can be used to get the values
-     * eventually returned by an asynchronous call on the {@link FollowingService}. Counts down
+     * A {@link FollowService.Observer} implementation that can be used to get the values
+     * eventually returned by an asynchronous call on the {@link FollowService}. Counts down
      * on the countDownLatch so tests can wait for the background thread to call a method on the
      * observer.
      */
-    private class FollowingServiceObserver implements FollowingService.Observer {
+    private class FollowingServiceObserver implements FollowService.Observer {
 
         private boolean success;
         private String message;
@@ -143,7 +143,7 @@ public class FollowingServiceTest {
         }
     }
 
-    private FollowingService setupFollowingServiceSpy(FollowingResponse serverFacadeResponse) {
+    private FollowService setupFollowingServiceSpy(FollowingResponse serverFacadeResponse) {
         ServerFacade mockServerFacade = Mockito.mock(ServerFacade.class);
         try {
             Mockito.when(mockServerFacade.getFollowees(Mockito.any(), Mockito.any())).thenReturn(serverFacadeResponse);
@@ -151,11 +151,11 @@ public class FollowingServiceTest {
             // We won't actually get an exception while setting up the mock
         }
 
-        FollowingService followingService = new FollowingService(observer);
-        FollowingService followingServiceSpy = Mockito.spy(followingService);
-        Mockito.when(followingServiceSpy.getServerFacade()).thenReturn(mockServerFacade);
+        FollowService followService = new FollowService(observer);
+        FollowService followServiceSpy = Mockito.spy(followService);
+        Mockito.when(followServiceSpy.getServerFacade()).thenReturn(mockServerFacade);
 
-        return followingServiceSpy;
+        return followServiceSpy;
     }
 
     private static void assertEquals(FollowingResponse response, FollowingServiceObserver observer) {
@@ -175,28 +175,28 @@ public class FollowingServiceTest {
     }
 
     /**
-     * Verify that for successful requests, the {@link FollowingService#getFollowees}
+     * Verify that for successful requests, the {@link FollowService#getFollowees}
      * asynchronous method eventually returns the same result as the {@link ServerFacade}.
      */
     @Test
     public void testGetFollowees_validRequest_correctResponse() throws InterruptedException {
-        FollowingService followingServiceSpy = setupFollowingServiceSpy(successResponse);
+        FollowService followServiceSpy = setupFollowingServiceSpy(successResponse);
 
-        followingServiceSpy.getFollowees(validRequest);
+        followServiceSpy.getFollowees(validRequest);
         awaitCountDownLatch();
 
         assertEquals(successResponse, observer);
     }
 
     /**
-     * Verify that for successful requests, the the {@link FollowingService#getFollowees}
+     * Verify that for successful requests, the the {@link FollowService#getFollowees}
      * method loads the profile image of each user included in the result.
      */
     @Test
     public void testGetFollowees_validRequest_loadsProfileImages() throws InterruptedException {
-        FollowingService followingServiceSpy = setupFollowingServiceSpy(successResponse);
+        FollowService followServiceSpy = setupFollowingServiceSpy(successResponse);
 
-        followingServiceSpy.getFollowees(validRequest);
+        followServiceSpy.getFollowees(validRequest);
         awaitCountDownLatch();
 
         List<User> followees = observer.getFollowees();
@@ -208,39 +208,39 @@ public class FollowingServiceTest {
     }
 
     /**
-     * Verify that for unsuccessful requests, the the {@link FollowingService#getFollowees}
+     * Verify that for unsuccessful requests, the the {@link FollowService#getFollowees}
      * method returns the same failure response as the server facade.
      */
     @Test
     public void testGetFollowees_invalidRequest_returnsNoFollowees() throws InterruptedException {
-        FollowingService followingServiceSpy = setupFollowingServiceSpy(failureResponse);
+        FollowService followServiceSpy = setupFollowingServiceSpy(failureResponse);
 
-        followingServiceSpy.getFollowees(invalidRequest);
+        followServiceSpy.getFollowees(invalidRequest);
         awaitCountDownLatch();
 
         assertEquals(failureResponse, observer);
     }
 
     /**
-     * Verify that when an IOException occurs while loading an image, the {@link FollowingService.Observer#handleException(Exception)}
+     * Verify that when an IOException occurs while loading an image, the {@link FollowService.Observer#handleException(Exception)}
      * method of the Service's observer is called and the exception is passed to it.
      */
     @Test
     public void testGetFollowees_exceptionThrownLoadingImages_observerHandleExceptionMethodCalled() throws IOException, InterruptedException {
-        FollowingService followingServiceSpy = setupFollowingServiceSpy(successResponse);
+        FollowService followServiceSpy = setupFollowingServiceSpy(successResponse);
 
-        // Create a task spy for the FollowingService that throws an exception when it's loadImages method is called
-        FollowingService.GetFollowingTask getFollowingTask =
-                followingServiceSpy.getGetFollowingTask(validRequest);
-        FollowingService.GetFollowingTask getFollowingTaskSpy = Mockito.spy(getFollowingTask);
+        // Create a task spy for the FollowService that throws an exception when it's loadImages method is called
+        FollowService.GetFollowingTask getFollowingTask =
+                followServiceSpy.getGetFollowingTask(validRequest);
+        FollowService.GetFollowingTask getFollowingTaskSpy = Mockito.spy(getFollowingTask);
 
         IOException exception = new IOException();
         Mockito.doThrow(exception).when(getFollowingTaskSpy).loadImages(Mockito.any());
 
-        // Make the FollowingService spy use the RetrieveFollowingTask spy
-        Mockito.when(followingServiceSpy.getGetFollowingTask(Mockito.any())).thenReturn(getFollowingTaskSpy);
+        // Make the FollowService spy use the RetrieveFollowingTask spy
+        Mockito.when(followServiceSpy.getGetFollowingTask(Mockito.any())).thenReturn(getFollowingTaskSpy);
 
-        followingServiceSpy.getFollowees(validRequest);
+        followServiceSpy.getFollowees(validRequest);
         awaitCountDownLatch();
 
         Assert.assertEquals(exception, observer.getException());

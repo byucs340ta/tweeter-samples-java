@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 
 import edu.byu.cs.tweeter.client.model.net.ServerFacade;
-import edu.byu.cs.tweeter.client.model.service.FollowingService;
+import edu.byu.cs.tweeter.client.model.service.FollowService;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.TweeterRemoteException;
@@ -50,14 +50,14 @@ public class FollowingPresenterTest {
     private final User user21 = new User("John", "Brown", MALE_IMAGE_URL);
 
     private ServerFacade serverFacadeMock;
-    private FollowingService followingServiceSpy;
+    private FollowService followServiceSpy;
     private FollowingPresenter followingPresenterSpy;
     private FollowingPresenter.View followingViewMock;
     private CountDownLatch countDownLatch;
 
     /**
      * Setup mocks and spies needed to let test cases control what users are returned
-     * by {@link FollowingService}.
+     * by {@link FollowService}.
      * Setup mock {@link FollowingPresenter} to verify that {@link FollowingPresenter}
      * correctly calls view methods.
      */
@@ -67,18 +67,18 @@ public class FollowingPresenterTest {
         followingViewMock = Mockito.mock(FollowingPresenter.View.class);
 
         // Create the mocks and spies needed to let test cases control what users are returned
-        // FollowingService.
+        // FollowService.
         serverFacadeMock = Mockito.mock(ServerFacade.class);
 
         FollowingPresenter followingPresenter = new FollowingPresenter(followingViewMock,
                 new User("", "", ""), new AuthToken());
         followingPresenterSpy = Mockito.spy(followingPresenter);
 
-        FollowingService followingService = new FollowingService(followingPresenterSpy);
-        followingServiceSpy = Mockito.spy(followingService);
+        FollowService followService = new FollowService(followingPresenterSpy);
+        followServiceSpy = Mockito.spy(followService);
 
-        Mockito.doReturn(serverFacadeMock).when(followingServiceSpy).getServerFacade();
-        Mockito.doReturn(followingServiceSpy).when(followingPresenterSpy).getFollowingService(Mockito.any());
+        Mockito.doReturn(serverFacadeMock).when(followServiceSpy).getServerFacade();
+        Mockito.doReturn(followServiceSpy).when(followingPresenterSpy).getFollowingService(Mockito.any());
 
         // Configure followingPresenterSpy to decrement the CountdownLatch after observer
         // methods execute, thus unblocking test cases.

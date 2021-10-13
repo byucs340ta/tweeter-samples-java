@@ -6,7 +6,7 @@ import edu.byu.cs.tweeter.model.net.request.LoginRequest;
 import edu.byu.cs.tweeter.model.net.response.LoginResponse;
 import edu.byu.cs.tweeter.server.util.FakeData;
 
-public class LoginService {
+public class UserService {
 
     public LoginResponse login(LoginRequest request) {
 

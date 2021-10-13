@@ -4,7 +4,7 @@ import android.util.Log;
 
 import java.util.List;
 
-import edu.byu.cs.tweeter.client.model.service.FollowingService;
+import edu.byu.cs.tweeter.client.model.service.FollowService;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
@@ -12,7 +12,7 @@ import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
 /**
  * The presenter for the "following" functionality of the application.
  */
-public class FollowingPresenter implements FollowingService.Observer {
+public class FollowingPresenter implements FollowService.Observer {
 
     private static final String LOG_TAG = "FollowingPresenter";
     private static final int PAGE_SIZE = 10;
@@ -25,7 +25,7 @@ public class FollowingPresenter implements FollowingService.Observer {
     private boolean hasMorePages = true;
     private boolean isLoading = false;
 
-    private FollowingService followingService;
+    private FollowService followService;
 
     /**
      * The interface by which this presenter communicates with it's view.
@@ -105,18 +105,18 @@ public class FollowingPresenter implements FollowingService.Observer {
     }
 
     /**
-     * Returns an instance of {@link FollowingService}. Allows mocking of the FollowingService class
-     * for testing purposes. All usages of FollowingService should get their FollowingService
+     * Returns an instance of {@link FollowService}. Allows mocking of the FollowService class
+     * for testing purposes. All usages of FollowService should get their FollowService
      * instance from this method to allow for mocking of the instance.
      *
      * @return the instance.
      */
-    public FollowingService getFollowingService(FollowingService.Observer observer) {
-        if(followingService == null) {
-            followingService = new FollowingService(observer);
+    public FollowService getFollowingService(FollowService.Observer observer) {
+        if(followService == null) {
+            followService = new FollowService(observer);
         }
 
-        return followingService;
+        return followService;
     }
 
     /**
