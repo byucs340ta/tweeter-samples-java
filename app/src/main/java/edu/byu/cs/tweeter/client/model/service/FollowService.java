@@ -20,13 +20,11 @@ import edu.byu.cs.tweeter.util.Pair;
  */
 public class FollowService {
 
-    private final Observer observer;
-
     /**
      * An observer interface to be implemented by observers who want to be notified when
      * asynchronous operations complete.
      */
-    public interface Observer {
+    public interface GetFollowingObserver {
         void handleSuccess(List<User> followees, boolean hasMorePages);
         void handleFailure(String message);
         void handleException(Exception exception);
@@ -34,17 +32,8 @@ public class FollowService {
 
     /**
      * Creates an instance.
-     *
-     * @param observer the observer who wants to be notified when any asynchronous operations complete.
      */
-    public FollowService(Observer observer) {
-        // An assertion would be better, but Android doesn't support Java assertions
-        if(observer == null) {
-            throw new NullPointerException();
-        }
-
-        this.observer = observer;
-    }
+    public FollowService() {}
 
     /**
      * Requests the users that the user specified in the request is following.
@@ -57,8 +46,8 @@ public class FollowService {
      * @param limit the maximum number of followees to return.
      * @param lastFollowee the last followee returned in the previous request (can be null).
      */
-    public void getFollowees(AuthToken authToken, User targetUser, int limit, User lastFollowee) {
-        GetFollowingTask followingTask = getGetFollowingTask(authToken, targetUser, limit, lastFollowee);
+    public void getFollowees(AuthToken authToken, User targetUser, int limit, User lastFollowee, GetFollowingObserver observer) {
+        GetFollowingTask followingTask = getGetFollowingTask(authToken, targetUser, limit, lastFollowee, observer);
         BackgroundTaskUtils.runTask(followingTask);
     }
 
@@ -70,9 +59,8 @@ public class FollowService {
      * @return the instance.
      */
     // This method is public so it can be accessed by test cases
-    public GetFollowingTask getGetFollowingTask(AuthToken authToken, User targetUser, int limit, User lastFollowee) {
-        return new GetFollowingTask(authToken, targetUser, limit, lastFollowee,
-                                        new MessageHandler(Looper.getMainLooper(), observer));
+    public GetFollowingTask getGetFollowingTask(AuthToken authToken, User targetUser, int limit, User lastFollowee, GetFollowingObserver observer) {
+        return new GetFollowingTask(authToken, targetUser, limit, lastFollowee, new MessageHandler(observer));
     }
 
     /**
@@ -81,10 +69,10 @@ public class FollowService {
      */
     public static class MessageHandler extends Handler {
 
-        private final Observer observer;
+        private final GetFollowingObserver observer;
 
-        public MessageHandler(Looper looper, Observer observer) {
-            super(looper);
+        public MessageHandler(GetFollowingObserver observer) {
+            super(Looper.getMainLooper());
             this.observer = observer;
         }
 
