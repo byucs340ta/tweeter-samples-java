@@ -76,23 +76,23 @@ public class FollowingServiceTest {
         resetCountDownLatch();
 
         // Create a FollowService instance and wrap it with a spy that will use mock tasks
-        FollowService followingService = new FollowService(observer);
+        FollowService followingService = new FollowService();
         followingServiceSpy = Mockito.spy(followingService);
 
         FollowService.GetFollowingTask validRequest_GetFollowingTask =
                 new FollowService.GetFollowingTask(validRequest_authToken, validRequest_targetUser,
                         validRequest_limit, validRequest_lastFollowee,
-                        new FollowService.MessageHandler(Looper.getMainLooper(), observer));
+                        new FollowService.MessageHandler(observer));
         validRequest_GetFollowingTaskSpy = Mockito.spy(validRequest_GetFollowingTask);
         Pair<List<User>, Boolean> successResponse_followees = new Pair<>(this.successResponse_followees, successResponse_hasMorePages);
         Mockito.when(validRequest_GetFollowingTaskSpy.getFollowees()).thenReturn(successResponse_followees);
         Mockito.when(followingServiceSpy.getGetFollowingTask(validRequest_authToken, validRequest_targetUser,
-                        validRequest_limit, validRequest_lastFollowee)).thenReturn(validRequest_GetFollowingTaskSpy);
+                        validRequest_limit, validRequest_lastFollowee, observer)).thenReturn(validRequest_GetFollowingTaskSpy);
 
         FollowService.GetFollowingTask invalidRequest_GetFollowingTask =
                 new FollowService.GetFollowingTask(invalidRequest_authToken, invalidRequest_targetUser,
                         invalidRequest_limit, invalidRequest_lastFollowee,
-                        new FollowService.MessageHandler(Looper.getMainLooper(), observer));
+                        new FollowService.MessageHandler(observer));
         invalidRequest_GetFollowingTaskSpy = Mockito.spy(invalidRequest_GetFollowingTask);
         Answer<Void> runTaskAnswer = new Answer<Void>() {
             @Override
@@ -103,7 +103,7 @@ public class FollowingServiceTest {
         };
         Mockito.doAnswer(runTaskAnswer).when(invalidRequest_GetFollowingTaskSpy).runTask();
         Mockito.when(followingServiceSpy.getGetFollowingTask(invalidRequest_authToken, invalidRequest_targetUser,
-                invalidRequest_limit, invalidRequest_lastFollowee)).thenReturn(invalidRequest_GetFollowingTaskSpy);
+                invalidRequest_limit, invalidRequest_lastFollowee, observer)).thenReturn(invalidRequest_GetFollowingTaskSpy);
     }
 
     private void resetCountDownLatch() {
@@ -116,11 +116,11 @@ public class FollowingServiceTest {
     }
 
     /**
-     * A {@link FollowService.Observer} implementation that can be used to get the values eventually
+     * A {@link FollowService.GetFollowingObserver} implementation that can be used to get the values eventually
      * returned by an asynchronous call on the {@link FollowService}. Counts down on the
      * countDownLatch so tests can wait for the background thread to call a method on the observer.
      */
-    private class FollowingServiceObserver implements FollowService.Observer {
+    private class FollowingServiceObserver implements FollowService.GetFollowingObserver {
 
         private List<User> followees;
         private boolean hasMorePages;
@@ -174,7 +174,7 @@ public class FollowingServiceTest {
     @Test
     public void testGetFollowees_validRequest_passesCorrectResponseToObserver() throws InterruptedException {
         followingServiceSpy.getFollowees(validRequest_authToken, validRequest_targetUser,
-                                            validRequest_limit, validRequest_lastFollowee);
+                                            validRequest_limit, validRequest_lastFollowee, observer);
 
         // Wait for the background thread to finish and invoke a method on the observer
         awaitCountDownLatch();
@@ -191,7 +191,7 @@ public class FollowingServiceTest {
     @Test
     public void testGetFollowees_validRequest_loadsProfileImages() throws InterruptedException {
         followingServiceSpy.getFollowees(validRequest_authToken, validRequest_targetUser,
-                                            validRequest_limit, validRequest_lastFollowee);
+                                            validRequest_limit, validRequest_lastFollowee, observer);
 
         awaitCountDownLatch();
 
@@ -207,7 +207,7 @@ public class FollowingServiceTest {
     @Test
     public void testGetFollowees_invalidRequest_returnsNoFollowees() throws InterruptedException {
         followingServiceSpy.getFollowees(invalidRequest_authToken, invalidRequest_targetUser,
-                                            invalidRequest_limit, invalidRequest_lastFollowee);
+                                            invalidRequest_limit, invalidRequest_lastFollowee, observer);
 
         awaitCountDownLatch();
 
@@ -227,7 +227,7 @@ public class FollowingServiceTest {
         Mockito.doThrow(exception).when(validRequest_GetFollowingTaskSpy).loadImages(Mockito.any());
 
         followingServiceSpy.getFollowees(validRequest_authToken, validRequest_targetUser,
-                                            validRequest_limit, validRequest_lastFollowee);
+                                            validRequest_limit, validRequest_lastFollowee, observer);
 
         awaitCountDownLatch();
 
