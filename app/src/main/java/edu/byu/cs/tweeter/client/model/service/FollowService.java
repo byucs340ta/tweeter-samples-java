@@ -135,6 +135,15 @@ public class FollowService {
          */
         protected User lastFollowee;
 
+        /**
+         * The followee users returned by the server.
+         */
+        private List<User> followees;
+        /**
+         * If there are more pages, returned by the server.
+         */
+        private boolean hasMorePages;
+
         public GetFollowingTask(AuthToken authToken, User targetUser, int limit, User lastFollowee,
                                 Handler messageHandler) {
             super(messageHandler);
@@ -145,26 +154,20 @@ public class FollowService {
             this.lastFollowee = lastFollowee;
         }
 
-        protected void sendSuccessMessage(List<User> followees, boolean hasMorePages) {
-            sendSuccessMessage(new BundleLoader() {
-                @Override
-                public void load(Bundle msgBundle) {
-                    msgBundle.putSerializable(FOLLOWEES_KEY, (Serializable) followees);
-                    msgBundle.putBoolean(MORE_PAGES_KEY, hasMorePages);
-                }
-            });
+        protected void loadSuccessBundle(Bundle msgBundle) {
+            msgBundle.putSerializable(FOLLOWEES_KEY, (Serializable) this.followees);
+            msgBundle.putBoolean(MORE_PAGES_KEY, this.hasMorePages);
         }
 
         @Override
         protected void runTask() {
             try {
                 Pair<List<User>, Boolean> pageOfUsers = getFollowees();
-                List<User> followees = pageOfUsers.getFirst();
-                boolean hasMorePages = pageOfUsers.getSecond();
+                this.followees = pageOfUsers.getFirst();
+                this.hasMorePages = pageOfUsers.getSecond();
 
                 loadImages(followees);
-
-                sendSuccessMessage(followees, hasMorePages);
+                sendSuccessMessage();
             }
             catch (Exception ex) {
                 Log.e(LOG_TAG, "Failed to get followees", ex);

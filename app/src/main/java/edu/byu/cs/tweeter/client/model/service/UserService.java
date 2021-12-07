@@ -110,6 +110,16 @@ public class UserService {
          */
         private String password;
 
+        /**
+         * The logged-in user returned by the server.
+         */
+        protected User user;
+
+        /**
+         * The auth token returned by the server.
+         */
+        protected AuthToken authToken;
+
         public LoginTask(String username, String password, Handler messageHandler) {
             super(messageHandler);
 
@@ -122,13 +132,11 @@ public class UserService {
             try {
                 Pair<User, AuthToken> loginResult = doLogin();
 
-                User loggedInUser = loginResult.getFirst();
-                AuthToken authToken = loginResult.getSecond();
+                this.user = loginResult.getFirst();
+                this.authToken = loginResult.getSecond();
 
-                BackgroundTaskUtils.loadImage(loggedInUser);
-
-                sendSuccessMessage(loggedInUser, authToken);
-
+                BackgroundTaskUtils.loadImage(this.user);
+                sendSuccessMessage();
             } catch (Exception ex) {
                 Log.e(LOG_TAG, ex.getMessage(), ex);
                 sendExceptionMessage(ex);
@@ -147,14 +155,9 @@ public class UserService {
             return new Pair<>(loggedInUser, authToken);
         }
 
-        private void sendSuccessMessage(User loggedInUser, AuthToken authToken) {
-            sendSuccessMessage(new BundleLoader() {
-                @Override
-                public void load(Bundle msgBundle) {
-                    msgBundle.putSerializable(USER_KEY, loggedInUser);
-                    msgBundle.putSerializable(AUTH_TOKEN_KEY, authToken);
-                }
-            });
+        protected void loadSuccessBundle(Bundle msgBundle) {
+            msgBundle.putSerializable(USER_KEY, this.user);
+            msgBundle.putSerializable(AUTH_TOKEN_KEY, this.authToken);
         }
     }
 }
