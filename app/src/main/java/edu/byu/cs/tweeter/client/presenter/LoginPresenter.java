@@ -10,7 +10,7 @@ import edu.byu.cs.tweeter.model.domain.User;
 /**
  * The presenter for the login functionality of the application.
  */
-public class LoginPresenter implements UserService.Observer {
+public class LoginPresenter implements UserService.LoginObserver {
 
     private static final String LOG_TAG = "LoginPresenter";
 
@@ -44,8 +44,8 @@ public class LoginPresenter implements UserService.Observer {
      * @param password the user's password.
      */
     public void initiateLogin(String username, String password) {
-        UserService userService = new UserService(this);
-        userService.login(username, password);
+        UserService userService = new UserService();
+        userService.login(username, password, this);
     }
 
     /**
