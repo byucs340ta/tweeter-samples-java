@@ -86,8 +86,8 @@ public class FollowingPresenterTest {
                 // Assert that the parameters are correct
                 Assert.assertEquals(fakeUser, user);
                 Assert.assertEquals(fakeAuthToken, authToken);
-                Assert.assertEquals(limit, 10);
-                Assert.assertEquals(lastFollowee, null);
+                Assert.assertEquals(limit, FollowingPresenter.PAGE_SIZE);
+                Assert.assertEquals(lastFollowee, followingPresenterSpy.getLastFollowee());
 
                 FollowService.GetFollowingObserver observer = invocation.getArgument(4);
                 observer.handleSuccess(followees, true);

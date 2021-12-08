@@ -14,7 +14,7 @@ import edu.byu.cs.tweeter.model.domain.User;
 public class FollowingPresenter implements FollowService.GetFollowingObserver {
 
     private static final String LOG_TAG = "FollowingPresenter";
-    private static final int PAGE_SIZE = 10;
+    public static final int PAGE_SIZE = 10;
 
     private final View view;
     private final User user;
