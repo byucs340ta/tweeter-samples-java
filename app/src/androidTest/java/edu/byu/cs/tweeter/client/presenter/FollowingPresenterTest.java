@@ -1,5 +1,6 @@
 package edu.byu.cs.tweeter.client.presenter;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -12,6 +13,7 @@ import java.util.List;
 
 import edu.byu.cs.tweeter.client.model.service.FollowService;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
+import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
 
 import static org.junit.Assert.assertEquals;
@@ -29,23 +31,9 @@ public class FollowingPresenterTest {
     private final User user3 = new User("Bob", "Bobson", MALE_IMAGE_URL);
     private final User user4 = new User("Bonnie", "Beatty", FEMALE_IMAGE_URL);
     private final User user5 = new User("Chris", "Colston", MALE_IMAGE_URL);
-    private final User user6 = new User("Cindy", "Coats", FEMALE_IMAGE_URL);
-    private final User user7 = new User("Dan", "Donaldson", MALE_IMAGE_URL);
-    private final User user8 = new User("Dee", "Dempsey", FEMALE_IMAGE_URL);
-    private final User user9 = new User("Elliott", "Enderson", MALE_IMAGE_URL);
-    private final User user10 = new User("Elizabeth", "Engle", FEMALE_IMAGE_URL);
-    private final User user11 = new User("Frank", "Frandson", MALE_IMAGE_URL);
-    private final User user12 = new User("Fran", "Franklin", FEMALE_IMAGE_URL);
-    private final User user13 = new User("Gary", "Gilbert", MALE_IMAGE_URL);
-    private final User user14 = new User("Giovanna", "Giles", FEMALE_IMAGE_URL);
-    private final User user15 = new User("Henry", "Henderson", MALE_IMAGE_URL);
-    private final User user16 = new User("Helen", "Hopwell", FEMALE_IMAGE_URL);
-    private final User user17 = new User("Igor", "Isaacson", MALE_IMAGE_URL);
-    private final User user18 = new User("Isabel", "Isaacson", FEMALE_IMAGE_URL);
-    private final User user19 = new User("Justin", "Jones", MALE_IMAGE_URL);
-    private final User user20 = new User("Jill", "Johnson", FEMALE_IMAGE_URL);
-    private final User user21 = new User("John", "Brown", MALE_IMAGE_URL);
 
+    private User fakeUser;
+    private AuthToken fakeAuthToken;
     private FollowService followingServiceMock;
     private FollowingPresenter followingPresenterSpy;
     private FollowingPresenter.View followingViewMock;
@@ -58,13 +46,15 @@ public class FollowingPresenterTest {
      */
     @Before
     public void setup() {
+        fakeUser = new User("Paul", "Bunyon", "@Paul_Bunyon_123", "https://s3.amazon.com/paul_bunyon");
+        fakeAuthToken = new AuthToken("abc-123-xyz-789", "August 12, 2021 3:01 PM");
+
         // followingViewMock is used to verify that FollowingPresenter correctly calls view methods.
         followingViewMock = Mockito.mock(FollowingPresenter.View.class);
 
         // Create the mocks and spies needed to let test cases control what users are returned
         // FollowService.
-        FollowingPresenter followingPresenter = new FollowingPresenter(followingViewMock,
-                new User("", "", ""), new AuthToken());
+        FollowingPresenter followingPresenter = new FollowingPresenter(followingViewMock, fakeUser, fakeAuthToken);
         followingPresenterSpy = Mockito.spy(followingPresenter);
 
         followingServiceMock = Mockito.mock(FollowService.class);
@@ -80,6 +70,35 @@ public class FollowingPresenterTest {
         assertTrue(followingPresenterSpy.isHasMorePages());
         assertFalse(followingPresenterSpy.isLoading());
     }
+
+    @Test
+    public void testLoadMoreItems_CorrectParamsPassedToStatusService() {
+        List<User> followees = Arrays.asList(user1, user2, user3, user4, user5);
+
+        Answer<Void> manyFolloweesAnswer = new Answer<Void>() {
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                AuthToken authToken = invocation.getArgument(0);
+                User user = invocation.getArgument(1);
+                int limit = invocation.getArgument(2);
+                User lastFollowee = invocation.getArgument(3);
+
+                // Assert that the parameters are correct
+                Assert.assertEquals(fakeUser, user);
+                Assert.assertEquals(fakeAuthToken, authToken);
+                Assert.assertEquals(limit, 10);
+                Assert.assertEquals(lastFollowee, null);
+
+                FollowService.GetFollowingObserver observer = invocation.getArgument(4);
+                observer.handleSuccess(followees, true);
+                return null;
+            }
+        };
+        Mockito.doAnswer(manyFolloweesAnswer).when(followingServiceMock).getFollowees(Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
+        followingPresenterSpy.loadMoreItems();
+    }
+
+
 
     /**
      * Verify that {@link FollowingPresenter#loadMoreItems} works correctly when there
