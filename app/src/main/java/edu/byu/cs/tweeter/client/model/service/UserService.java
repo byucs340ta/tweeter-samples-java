@@ -19,15 +19,13 @@ public class UserService {
 
     private static final String URL_PATH = "/login";
 
-    private final Observer observer;
-
     private ServerFacade serverFacade;
 
     /**
      * An observer interface to be implemented by observers who want to be notified when
      * asynchronous operations complete.
      */
-    public interface Observer {
+    public interface LoginObserver {
         void handleSuccess(User user, AuthToken authToken);
         void handleFailure(String message);
         void handleException(Exception exception);
@@ -36,20 +34,18 @@ public class UserService {
     /**
      * Creates an instance.
      *
-     * @param observer the observer who wants to be notified when any asynchronous operations
-     *                 complete.
      */
-     public UserService(Observer observer) {
-        this.observer = observer;
+     public UserService() {
      }
 
     /**
      * Makes an asynchronous login request.
      *
-     * @param loginRequest the request that contains the login information.
+     * @param username the user's name.
+     * @param password the user's password.
      */
-    public void login(LoginRequest loginRequest) {
-        LoginTask loginTask = getLoginTask(loginRequest);
+    public void login(String username, String password, LoginObserver observer) {
+        LoginTask loginTask = getLoginTask(username, password, observer);
         BackgroundTaskUtils.runTask(loginTask);
     }
 
@@ -76,9 +72,10 @@ public class UserService {
      *
      * @return the instance.
      */
-    LoginTask getLoginTask(LoginRequest loginRequest) {
-        return new LoginTask(loginRequest, new MessageHandler(Looper.getMainLooper(), observer));
+    LoginTask getLoginTask(String username, String password, LoginObserver observer) {
+        return new LoginTask(username, password, new MessageHandler(observer));
     }
+
 
     /**
      * Handles messages from the background task indicating that the task is done, by invoking
@@ -86,10 +83,10 @@ public class UserService {
      */
     private static class MessageHandler extends Handler {
 
-        private final Observer observer;
+        private final LoginObserver observer;
 
-        MessageHandler(Looper looper, Observer observer) {
-            super(looper);
+        MessageHandler(LoginObserver observer) {
+            super(Looper.getMainLooper());
             this.observer = observer;
         }
 
@@ -124,17 +121,27 @@ public class UserService {
         /**
          * The user's username (or "alias" or "handle"). E.g., "@susan".
          */
-        private final String username;
+        private String username;
         /**
          * The user's password.
          */
-        private final String password;
+        private String password;
 
-        public LoginTask(LoginRequest loginRequest, Handler messageHandler) {
+        /**
+         * The logged-in user returned by the server.
+         */
+        protected User user;
+
+        /**
+         * The auth token returned by the server.
+         */
+        protected AuthToken authToken;
+
+        public LoginTask(String username, String password, Handler messageHandler) {
             super(messageHandler);
 
-            this.username = loginRequest.getUsername();
-            this.password = loginRequest.getPassword();
+            this.username = username;
+            this.password = password;
         }
 
         @Override
@@ -145,7 +152,9 @@ public class UserService {
 
                 if(response.isSuccess()) {
                     BackgroundTaskUtils.loadImage(response.getUser());
-                    sendSuccessMessage(response.getUser(), response.getAuthToken());
+                    this.user = response.getUser();
+                    this.authToken = response.getAuthToken();
+                    sendSuccessMessage();
                 }
                 else {
                     sendFailedMessage(response.getMessage());
@@ -156,14 +165,9 @@ public class UserService {
             }
         }
 
-        private void sendSuccessMessage(User loggedInUser, AuthToken authToken) {
-            sendSuccessMessage(new BundleLoader() {
-                @Override
-                public void load(Bundle msgBundle) {
-                    msgBundle.putSerializable(USER_KEY, loggedInUser);
-                    msgBundle.putSerializable(AUTH_TOKEN_KEY, authToken);
-                }
-            });
+        protected void loadSuccessBundle(Bundle msgBundle) {
+            msgBundle.putSerializable(USER_KEY, this.user);
+            msgBundle.putSerializable(AUTH_TOKEN_KEY, this.authToken);
         }
     }
 }

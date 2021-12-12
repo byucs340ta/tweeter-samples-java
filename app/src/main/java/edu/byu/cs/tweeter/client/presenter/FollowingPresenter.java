@@ -12,10 +12,10 @@ import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
 /**
  * The presenter for the "following" functionality of the application.
  */
-public class FollowingPresenter implements FollowService.Observer {
+public class FollowingPresenter implements FollowService.GetFollowingObserver {
 
     private static final String LOG_TAG = "FollowingPresenter";
-    private static final int PAGE_SIZE = 10;
+    public static final int PAGE_SIZE = 10;
 
     private final View view;
     private final User user;
@@ -97,11 +97,7 @@ public class FollowingPresenter implements FollowService.Observer {
      * @param lastFollowee the last followee returned in the previous request (can be null).
      */
     public void getFollowing(AuthToken authToken, User targetUser, int limit, User lastFollowee) {
-        String targetUserAlias = (targetUser == null) ? null : targetUser.getAlias();
-        String lastFolloweeAlias = (lastFollowee == null) ? null : lastFollowee.getAlias();
-        FollowingRequest request = new FollowingRequest(authToken, targetUserAlias, limit, lastFolloweeAlias);
-
-        getFollowingService(this).getFollowees(request);
+        getFollowingService().getFollowees(authToken, targetUser, limit, lastFollowee, this);
     }
 
     /**
@@ -111,9 +107,9 @@ public class FollowingPresenter implements FollowService.Observer {
      *
      * @return the instance.
      */
-    public FollowService getFollowingService(FollowService.Observer observer) {
+    public FollowService getFollowingService() {
         if(followService == null) {
-            followService = new FollowService(observer);
+            followService = new FollowService();
         }
 
         return followService;
@@ -122,12 +118,12 @@ public class FollowingPresenter implements FollowService.Observer {
     /**
      * Adds new followees retrieved asynchronously from the service to the view.
      *
-     * @param followees list of retrieved followees.
-     * @param hasMorePages whether or not there are remaining followees to retrieve.
+     * @param followees the retrieved followees.
+     * @param hasMorePages whether or not there are more followees to retrieved.
      */
     @Override
     public void handleSuccess(List<User> followees, boolean hasMorePages) {
-        setLastFollowee((followees.size() > 0) ? followees.get(followees.size() -1) : null);
+        setLastFollowee((followees.size() > 0) ? followees.get(followees.size() - 1) : null);
         setHasMorePages(hasMorePages);
 
         view.setLoading(false);
