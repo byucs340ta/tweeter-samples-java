@@ -191,7 +191,11 @@ public class FollowServiceTest {
         followServiceSpy.getFollowees(null, null, 0, null, observer);
         awaitCountDownLatch();
 
-        assertEquals(failureResponse, observer);
+        Assert.assertEquals(false, observer.isSuccess());
+        Assert.assertEquals("", observer.getMessage());
+        Assert.assertNull(observer.getFollowees());
+        Assert.assertEquals(false, observer.getHasMorePages());
+        Assert.assertNotNull(observer.getException());
     }
 
     /**
