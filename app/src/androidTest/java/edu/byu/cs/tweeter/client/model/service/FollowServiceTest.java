@@ -130,23 +130,6 @@ public class FollowServiceTest {
         }
     }
 
-
-    private static void assertEquals(FollowingResponse response, FollowServiceObserver observer) {
-        Assert.assertEquals(response.isSuccess(), observer.isSuccess());
-        Assert.assertEquals(response.getMessage(), observer.getMessage());
-        Assert.assertEquals(response.getFollowees(), observer.getFollowees());
-        Assert.assertEquals(response.getHasMorePages(), observer.getHasMorePages());
-        Assert.assertNull(observer.getException());
-    }
-
-    private static void assertEquals(Exception exception, FollowServiceObserver observer) {
-        Assert.assertFalse(observer.isSuccess());
-        Assert.assertNull(observer.getMessage());
-        Assert.assertNull(observer.getFollowees());
-        Assert.assertFalse(observer.getHasMorePages());
-        Assert.assertEquals(exception, observer.getException());
-    }
-
     /**
      * Verify that for successful requests, the {@link FollowService#getFollowees}
      * asynchronous method eventually returns the same result as the {@link ServerFacade}.
@@ -157,9 +140,8 @@ public class FollowServiceTest {
         awaitCountDownLatch();
 
         List<User> expectedFollowees = new FakeData().getFakeUsers().subList(0, 3);
-
         Assert.assertEquals(true, observer.isSuccess());
-        Assert.assertEquals("", observer.getMessage());
+        Assert.assertEquals(null, observer.getMessage());
         Assert.assertEquals(expectedFollowees, observer.getFollowees());
         Assert.assertEquals(true, observer.getHasMorePages());
         Assert.assertNull(observer.getException());
@@ -191,6 +173,7 @@ public class FollowServiceTest {
         followServiceSpy.getFollowees(null, null, 0, null, observer);
         awaitCountDownLatch();
 
+        System.out.println("XXXXXXXX" +  observer.isSuccess() + observer.getMessage());
         Assert.assertEquals(false, observer.isSuccess());
         Assert.assertEquals("", observer.getMessage());
         Assert.assertNull(observer.getFollowees());
@@ -209,7 +192,7 @@ public class FollowServiceTest {
                 followServiceSpy.getGetFollowingTask(currentAuthToken, currentUser, 3, null, observer);
         FollowService.GetFollowingTask getFollowingTaskSpy = Mockito.spy(getFollowingTask);
 
-        IOException exception = new IOException();
+        IOException exception = new IOException("Intentionally thrown Exception");
         Mockito.doThrow(exception).when(getFollowingTaskSpy).loadImages(Mockito.any());
 
         // Make the FollowService spy use the RetrieveFollowingTask spy
