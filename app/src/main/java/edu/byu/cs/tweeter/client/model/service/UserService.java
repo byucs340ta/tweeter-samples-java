@@ -129,7 +129,6 @@ public class UserService {
                 this.user = loginResult.getFirst();
                 this.authToken = loginResult.getSecond();
 
-                BackgroundTaskUtils.loadImage(this.user);
                 sendSuccessMessage();
             } catch (Exception ex) {
                 Log.e(LOG_TAG, ex.getMessage(), ex);
