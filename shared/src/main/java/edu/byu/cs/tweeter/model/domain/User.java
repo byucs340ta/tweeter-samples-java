@@ -12,7 +12,6 @@ public class User implements Comparable<User>, Serializable {
     private final String lastName;
     private final String alias;
     private final String imageUrl;
-    private byte [] imageBytes;
 
     public User(String firstName, String lastName, String imageURL) {
         this(firstName, lastName, String.format("@%s%s", firstName, lastName), imageURL);
@@ -43,14 +42,6 @@ public class User implements Comparable<User>, Serializable {
 
     public String getImageUrl() {
         return imageUrl;
-    }
-
-    public byte [] getImageBytes() {
-        return imageBytes;
-    }
-
-    public void setImageBytes(byte[] imageBytes) {
-        this.imageBytes = imageBytes;
     }
 
     @Override

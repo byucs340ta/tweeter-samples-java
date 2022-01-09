@@ -154,7 +154,6 @@ public class FollowService {
                 this.followees = pageOfUsers.getFirst();
                 this.hasMorePages = pageOfUsers.getSecond();
 
-                loadImages(followees);
                 sendSuccessMessage();
             }
             catch (Exception ex) {
@@ -171,13 +170,6 @@ public class FollowService {
         // This method is public so it can be accessed by test cases
         public Pair<List<User>, Boolean> getFollowees() {
             return getFakeData().getPageOfUsers(lastFollowee, limit, targetUser);
-        }
-
-        // This method is public so it can be accessed by test cases
-        public void loadImages(List<User> followees) throws IOException {
-            for (User u : followees) {
-                BackgroundTaskUtils.loadImage(u);
-            }
         }
     }
 
