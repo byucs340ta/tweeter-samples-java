@@ -40,7 +40,6 @@ public abstract class BackgroundTask implements Runnable {
     // To be overridden by each task to add information to the bundle
     protected void loadSuccessBundle(Bundle msgBundle) {
         // By default, do nothing
-        return;
     }
 
     // This method is public instead of protected to make it accessible to test cases
