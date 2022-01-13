@@ -22,9 +22,6 @@ public class FollowServiceTest {
     private User currentUser;
     private AuthToken currentAuthToken;
 
-    //private FollowingResponse successResponse;
-    //private FollowingResponse failureResponse;
-
     private FollowService followServiceSpy;
     private FollowServiceObserver observer;
 
@@ -38,11 +35,6 @@ public class FollowServiceTest {
     public void setup() {
         currentUser = new User("FirstName", "LastName", null);
         currentAuthToken = new AuthToken();
-
-        // Setup success and failure responses to be used in the tests
-        //successResponse = new FollowingResponse(success_followees, false);
-
-        //failureResponse = new FollowingResponse("An exception occurred");
 
         followServiceSpy = Mockito.spy(new FollowService());
 
@@ -173,9 +165,8 @@ public class FollowServiceTest {
         followServiceSpy.getFollowees(null, null, 0, null, observer);
         awaitCountDownLatch();
 
-        System.out.println("XXXXXXXX" +  observer.isSuccess() + observer.getMessage());
         Assert.assertEquals(false, observer.isSuccess());
-        Assert.assertEquals("", observer.getMessage());
+        Assert.assertNull(observer.getMessage());
         Assert.assertNull(observer.getFollowees());
         Assert.assertEquals(false, observer.getHasMorePages());
         Assert.assertNotNull(observer.getException());
