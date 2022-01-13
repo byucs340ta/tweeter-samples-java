@@ -9,6 +9,11 @@ import edu.byu.cs.tweeter.util.FakeData;
 public class UserService {
 
     public LoginResponse login(LoginRequest request) {
+        if(request.getUsername() == null){
+            throw new RuntimeException("[BadRequest] Missing a username");
+        } else if(request.getPassword() == null) {
+            throw new RuntimeException("[BadRequest] Missing a password");
+        }
 
         // TODO: Generates dummy data. Replace with a real implementation.
         User user = getDummyUser();
