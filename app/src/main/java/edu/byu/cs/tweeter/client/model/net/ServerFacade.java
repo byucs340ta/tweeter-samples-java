@@ -16,7 +16,7 @@ public class ServerFacade {
 
     // TODO: Set this to the invoke URL of your API. Find it by going to your API in AWS, clicking
     //  on stages in the right-side menu, and clicking on the stage you deployed your API to.
-    private static final String SERVER_URL = "https://8bnqp1agh6.execute-api.us-west-2.amazonaws.com/dev";
+    private static final String SERVER_URL = "Insert your API invoke URL here";
 
     private final ClientCommunicator clientCommunicator = new ClientCommunicator(SERVER_URL);
 
