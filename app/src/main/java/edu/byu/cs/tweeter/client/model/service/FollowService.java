@@ -170,7 +170,6 @@ public class FollowService {
                 FollowingResponse response = getServerFacade().getFollowees(request, URL_PATH);
 
                 if(response.isSuccess()) {
-                    loadImages(response.getFollowees());
                     this.followees = response.getFollowees();
                     this.hasMorePages = response.getHasMorePages();
                     sendSuccessMessage();
@@ -187,13 +186,6 @@ public class FollowService {
         protected void loadSuccessBundle(Bundle msgBundle) {
             msgBundle.putSerializable(FOLLOWEES_KEY, (Serializable) this.followees);
             msgBundle.putBoolean(MORE_PAGES_KEY, this.hasMorePages);
-        }
-
-        // This method is public so it can be accessed by test cases
-        public void loadImages(List<User> followees) throws IOException {
-            for (User u : followees) {
-                BackgroundTaskUtils.loadImage(u);
-            }
         }
     }
 

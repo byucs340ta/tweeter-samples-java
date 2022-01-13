@@ -151,7 +151,6 @@ public class UserService {
                 LoginResponse response = getServerFacade().login(request, URL_PATH);
 
                 if(response.isSuccess()) {
-                    BackgroundTaskUtils.loadImage(response.getUser());
                     this.user = response.getUser();
                     this.authToken = response.getAuthToken();
                     sendSuccessMessage();

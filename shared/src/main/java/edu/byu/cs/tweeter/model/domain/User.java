@@ -12,7 +12,6 @@ public class User implements Comparable<User>, Serializable {
     private String lastName;
     private String alias;
     private String imageUrl;
-    private byte [] imageBytes;
 
     /**
      * Allows construction of the object from Json. Private so it won't be called by other code.
@@ -64,14 +63,6 @@ public class User implements Comparable<User>, Serializable {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
-    }
-
-    public byte [] getImageBytes() {
-        return imageBytes;
-    }
-
-    public void setImageBytes(byte[] imageBytes) {
-        this.imageBytes = imageBytes;
     }
 
     @Override
