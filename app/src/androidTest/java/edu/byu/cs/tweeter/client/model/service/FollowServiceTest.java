@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -147,10 +146,6 @@ public class FollowServiceTest {
 
         List<User> followees = observer.getFollowees();
         Assert.assertTrue(followees.size() > 0);
-
-        for(User user : followees) {
-            Assert.assertNotNull(user.getImageBytes());
-        }
     }
 
     /**
@@ -167,29 +162,5 @@ public class FollowServiceTest {
         Assert.assertNull(observer.getFollowees());
         Assert.assertFalse(observer.getHasMorePages());
         Assert.assertNotNull(observer.getException());
-    }
-
-    /**
-     * Verify that when an IOException occurs while loading an image, the {@link FollowService.GetFollowingObserver#handleException(Exception)}
-     * method of the Service's observer is called and the exception is passed to it.
-     */
-    @Test
-    public void testGetFollowees_exceptionThrownLoadingImages_observerHandleExceptionMethodCalled() throws IOException, InterruptedException {
-        // Create a task spy for the FollowService that throws an exception when it's loadImages method is called
-        FollowService.GetFollowingTask getFollowingTask =
-                followServiceSpy.getGetFollowingTask(currentAuthToken, currentUser, 3, null, observer);
-        FollowService.GetFollowingTask getFollowingTaskSpy = Mockito.spy(getFollowingTask);
-
-        IOException exception = new IOException("Intentionally thrown Exception");
-        Mockito.doThrow(exception).when(getFollowingTaskSpy).loadImages(Mockito.any());
-
-        // Make the FollowService spy use the RetrieveFollowingTask spy
-        Mockito.when(followServiceSpy.getGetFollowingTask(Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any()))
-                .thenReturn(getFollowingTaskSpy);
-
-        followServiceSpy.getFollowees(currentAuthToken, currentUser, 3, null, observer);
-        awaitCountDownLatch();
-
-        Assert.assertEquals(exception, observer.getException());
     }
 }
