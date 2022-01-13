@@ -5,25 +5,20 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import edu.byu.cs.tweeter.client.model.net.ServerFacade;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
-import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
-import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
+import edu.byu.cs.tweeter.util.FakeData;
 
 public class FollowServiceTest {
 
-    private FollowingRequest validRequest;
-    private FollowingRequest invalidRequest;
+    private User currentUser;
+    private AuthToken currentAuthToken;
 
-    private FollowingResponse successResponse;
-    private FollowingResponse failureResponse;
-
+    private FollowService followServiceSpy;
     private FollowServiceObserver observer;
 
     private CountDownLatch countDownLatch;
@@ -34,24 +29,10 @@ public class FollowServiceTest {
      */
     @Before
     public void setup() {
-        User currentUser = new User("FirstName", "LastName", null);
+        currentUser = new User("FirstName", "LastName", null);
+        currentAuthToken = new AuthToken();
 
-        User resultUser1 = new User("FirstName1", "LastName1",
-                "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png");
-        User resultUser2 = new User("FirstName2", "LastName2",
-                "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/daisy_duck.png");
-        User resultUser3 = new User("FirstName3", "LastName3",
-                "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/daisy_duck.png");
-
-        // Setup valid and invalid requests to be used in the tests
-        validRequest = new FollowingRequest(new AuthToken(), currentUser.getAlias(), 3, null);
-        invalidRequest = new FollowingRequest(null, null, 0, null);
-
-        // Setup success and failure responses to be used in the tests
-        List<User> success_followees = Arrays.asList(resultUser1, resultUser2, resultUser3);
-        successResponse = new FollowingResponse(success_followees, false);
-
-        failureResponse = new FollowingResponse("An exception occurred");
+        followServiceSpy = Mockito.spy(new FollowService());
 
         // Setup an observer for the FollowService
         observer = new FollowServiceObserver();
@@ -70,12 +51,12 @@ public class FollowServiceTest {
     }
 
     /**
-     * A {@link FollowService.Observer} implementation that can be used to get the values
+     * A {@link FollowService.GetFollowingObserver} implementation that can be used to get the values
      * eventually returned by an asynchronous call on the {@link FollowService}. Counts down
      * on the countDownLatch so tests can wait for the background thread to call a method on the
      * observer.
      */
-    private class FollowServiceObserver implements FollowService.Observer {
+    private class FollowServiceObserver implements FollowService.GetFollowingObserver {
 
         private boolean success;
         private String message;
@@ -137,49 +118,21 @@ public class FollowServiceTest {
         }
     }
 
-    private FollowService setupFollowingServiceSpy(FollowingResponse serverFacadeResponse) {
-        ServerFacade mockServerFacade = Mockito.mock(ServerFacade.class);
-        try {
-            Mockito.when(mockServerFacade.getFollowees(Mockito.any(), Mockito.any())).thenReturn(serverFacadeResponse);
-        } catch (Exception e) {
-            // We won't actually get an exception while setting up the mock
-        }
-
-        FollowService followService = new FollowService(observer);
-        FollowService followServiceSpy = Mockito.spy(followService);
-        Mockito.when(followServiceSpy.getServerFacade()).thenReturn(mockServerFacade);
-
-        return followServiceSpy;
-    }
-
-    private static void assertEquals(FollowingResponse response, FollowServiceObserver observer) {
-        Assert.assertEquals(response.isSuccess(), observer.isSuccess());
-        Assert.assertEquals(response.getMessage(), observer.getMessage());
-        Assert.assertEquals(response.getFollowees(), observer.getFollowees());
-        Assert.assertEquals(response.getHasMorePages(), observer.getHasMorePages());
-        Assert.assertNull(observer.getException());
-    }
-
-    private static void assertEquals(Exception exception, FollowServiceObserver observer) {
-        Assert.assertFalse(observer.isSuccess());
-        Assert.assertNull(observer.getMessage());
-        Assert.assertNull(observer.getFollowees());
-        Assert.assertFalse(observer.getHasMorePages());
-        Assert.assertEquals(exception, observer.getException());
-    }
-
     /**
      * Verify that for successful requests, the {@link FollowService#getFollowees}
      * asynchronous method eventually returns the same result as the {@link ServerFacade}.
      */
     @Test
     public void testGetFollowees_validRequest_correctResponse() throws InterruptedException {
-        FollowService followServiceSpy = setupFollowingServiceSpy(successResponse);
-
-        followServiceSpy.getFollowees(validRequest);
+        followServiceSpy.getFollowees(currentAuthToken, currentUser, 3, null, observer);
         awaitCountDownLatch();
 
-        assertEquals(successResponse, observer);
+        List<User> expectedFollowees = new FakeData().getFakeUsers().subList(0, 3);
+        Assert.assertTrue(observer.isSuccess());
+        Assert.assertNull(observer.getMessage());
+        Assert.assertEquals(expectedFollowees, observer.getFollowees());
+        Assert.assertTrue(observer.getHasMorePages());
+        Assert.assertNull(observer.getException());
     }
 
     /**
@@ -188,17 +141,11 @@ public class FollowServiceTest {
      */
     @Test
     public void testGetFollowees_validRequest_loadsProfileImages() throws InterruptedException {
-        FollowService followServiceSpy = setupFollowingServiceSpy(successResponse);
-
-        followServiceSpy.getFollowees(validRequest);
+        followServiceSpy.getFollowees(currentAuthToken, currentUser, 3, null, observer);
         awaitCountDownLatch();
 
         List<User> followees = observer.getFollowees();
         Assert.assertTrue(followees.size() > 0);
-
-        for(User user : followees) {
-            Assert.assertNotNull(user.getImageBytes());
-        }
     }
 
     /**
@@ -207,36 +154,13 @@ public class FollowServiceTest {
      */
     @Test
     public void testGetFollowees_invalidRequest_returnsNoFollowees() throws InterruptedException {
-        FollowService followServiceSpy = setupFollowingServiceSpy(failureResponse);
-
-        followServiceSpy.getFollowees(invalidRequest);
+        followServiceSpy.getFollowees(null, null, 0, null, observer);
         awaitCountDownLatch();
 
-        assertEquals(failureResponse, observer);
-    }
-
-    /**
-     * Verify that when an IOException occurs while loading an image, the {@link FollowService.Observer#handleException(Exception)}
-     * method of the Service's observer is called and the exception is passed to it.
-     */
-    @Test
-    public void testGetFollowees_exceptionThrownLoadingImages_observerHandleExceptionMethodCalled() throws IOException, InterruptedException {
-        FollowService followServiceSpy = setupFollowingServiceSpy(successResponse);
-
-        // Create a task spy for the FollowService that throws an exception when it's loadImages method is called
-        FollowService.GetFollowingTask getFollowingTask =
-                followServiceSpy.getGetFollowingTask(validRequest);
-        FollowService.GetFollowingTask getFollowingTaskSpy = Mockito.spy(getFollowingTask);
-
-        IOException exception = new IOException();
-        Mockito.doThrow(exception).when(getFollowingTaskSpy).loadImages(Mockito.any());
-
-        // Make the FollowService spy use the RetrieveFollowingTask spy
-        Mockito.when(followServiceSpy.getGetFollowingTask(Mockito.any())).thenReturn(getFollowingTaskSpy);
-
-        followServiceSpy.getFollowees(validRequest);
-        awaitCountDownLatch();
-
-        Assert.assertEquals(exception, observer.getException());
+        Assert.assertFalse(observer.isSuccess());
+        Assert.assertNull(observer.getMessage());
+        Assert.assertNull(observer.getFollowees());
+        Assert.assertFalse(observer.getHasMorePages());
+        Assert.assertNotNull(observer.getException());
     }
 }
