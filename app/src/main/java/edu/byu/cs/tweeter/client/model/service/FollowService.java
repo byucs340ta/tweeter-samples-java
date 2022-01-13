@@ -6,7 +6,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 
@@ -20,13 +19,11 @@ import edu.byu.cs.tweeter.util.Pair;
  */
 public class FollowService {
 
-    private final Observer observer;
-
     /**
      * An observer interface to be implemented by observers who want to be notified when
      * asynchronous operations complete.
      */
-    public interface Observer {
+    public interface GetFollowingObserver {
         void handleSuccess(List<User> followees, boolean hasMorePages);
         void handleFailure(String message);
         void handleException(Exception exception);
@@ -34,17 +31,8 @@ public class FollowService {
 
     /**
      * Creates an instance.
-     *
-     * @param observer the observer who wants to be notified when any asynchronous operations complete.
      */
-    public FollowService(Observer observer) {
-        // An assertion would be better, but Android doesn't support Java assertions
-        if(observer == null) {
-            throw new NullPointerException();
-        }
-
-        this.observer = observer;
-    }
+    public FollowService() {}
 
     /**
      * Requests the users that the user specified in the request is following.
@@ -57,8 +45,8 @@ public class FollowService {
      * @param limit the maximum number of followees to return.
      * @param lastFollowee the last followee returned in the previous request (can be null).
      */
-    public void getFollowees(AuthToken authToken, User targetUser, int limit, User lastFollowee) {
-        GetFollowingTask followingTask = getGetFollowingTask(authToken, targetUser, limit, lastFollowee);
+    public void getFollowees(AuthToken authToken, User targetUser, int limit, User lastFollowee, GetFollowingObserver observer) {
+        GetFollowingTask followingTask = getGetFollowingTask(authToken, targetUser, limit, lastFollowee, observer);
         BackgroundTaskUtils.runTask(followingTask);
     }
 
@@ -70,9 +58,8 @@ public class FollowService {
      * @return the instance.
      */
     // This method is public so it can be accessed by test cases
-    public GetFollowingTask getGetFollowingTask(AuthToken authToken, User targetUser, int limit, User lastFollowee) {
-        return new GetFollowingTask(authToken, targetUser, limit, lastFollowee,
-                                        new MessageHandler(Looper.getMainLooper(), observer));
+    public GetFollowingTask getGetFollowingTask(AuthToken authToken, User targetUser, int limit, User lastFollowee, GetFollowingObserver observer) {
+        return new GetFollowingTask(authToken, targetUser, limit, lastFollowee, new MessageHandler(observer));
     }
 
     /**
@@ -81,10 +68,10 @@ public class FollowService {
      */
     public static class MessageHandler extends Handler {
 
-        private final Observer observer;
+        private final GetFollowingObserver observer;
 
-        public MessageHandler(Looper looper, Observer observer) {
-            super(looper);
+        public MessageHandler(GetFollowingObserver observer) {
+            super(Looper.getMainLooper());
             this.observer = observer;
         }
 
@@ -135,6 +122,15 @@ public class FollowService {
          */
         protected User lastFollowee;
 
+        /**
+         * The followee users returned by the server.
+         */
+        private List<User> followees;
+        /**
+         * If there are more pages, returned by the server.
+         */
+        private boolean hasMorePages;
+
         public GetFollowingTask(AuthToken authToken, User targetUser, int limit, User lastFollowee,
                                 Handler messageHandler) {
             super(messageHandler);
@@ -145,26 +141,19 @@ public class FollowService {
             this.lastFollowee = lastFollowee;
         }
 
-        protected void sendSuccessMessage(List<User> followees, boolean hasMorePages) {
-            sendSuccessMessage(new BundleLoader() {
-                @Override
-                public void load(Bundle msgBundle) {
-                    msgBundle.putSerializable(FOLLOWEES_KEY, (Serializable) followees);
-                    msgBundle.putBoolean(MORE_PAGES_KEY, hasMorePages);
-                }
-            });
+        protected void loadSuccessBundle(Bundle msgBundle) {
+            msgBundle.putSerializable(FOLLOWEES_KEY, (Serializable) this.followees);
+            msgBundle.putBoolean(MORE_PAGES_KEY, this.hasMorePages);
         }
 
         @Override
         protected void runTask() {
             try {
                 Pair<List<User>, Boolean> pageOfUsers = getFollowees();
-                List<User> followees = pageOfUsers.getFirst();
-                boolean hasMorePages = pageOfUsers.getSecond();
+                this.followees = pageOfUsers.getFirst();
+                this.hasMorePages = pageOfUsers.getSecond();
 
-                loadImages(followees);
-
-                sendSuccessMessage(followees, hasMorePages);
+                sendSuccessMessage();
             }
             catch (Exception ex) {
                 Log.e(LOG_TAG, "Failed to get followees", ex);
@@ -180,13 +169,6 @@ public class FollowService {
         // This method is public so it can be accessed by test cases
         public Pair<List<User>, Boolean> getFollowees() {
             return getFakeData().getPageOfUsers(lastFollowee, limit, targetUser);
-        }
-
-        // This method is public so it can be accessed by test cases
-        public void loadImages(List<User> followees) throws IOException {
-            for (User u : followees) {
-                BackgroundTaskUtils.loadImage(u);
-            }
         }
     }
 

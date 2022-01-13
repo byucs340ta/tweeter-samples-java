@@ -16,13 +16,11 @@ import edu.byu.cs.tweeter.util.Pair;
  */
 public class UserService {
 
-    private final Observer observer;
-
     /**
      * An observer interface to be implemented by observers who want to be notified when
      * asynchronous operations complete.
      */
-    public interface Observer {
+    public interface LoginObserver {
         void handleSuccess(User user, AuthToken authToken);
         void handleFailure(String message);
         void handleException(Exception exception);
@@ -30,12 +28,8 @@ public class UserService {
 
     /**
      * Creates an instance.
-     *
-     * @param observer the observer who wants to be notified when any asynchronous operations
-     *                 complete.
      */
-    public UserService(Observer observer) {
-        this.observer = observer;
+    public UserService() {
     }
 
     /**
@@ -44,8 +38,8 @@ public class UserService {
      * @param username the user's name.
      * @param password the user's password.
      */
-    public void login(String username, String password) {
-        LoginTask loginTask = getLoginTask(username, password);
+    public void login(String username, String password, LoginObserver observer) {
+        LoginTask loginTask = getLoginTask(username, password, observer);
         BackgroundTaskUtils.runTask(loginTask);
     }
 
@@ -56,8 +50,8 @@ public class UserService {
      *
      * @return the instance.
      */
-    LoginTask getLoginTask(String username, String password) {
-        return new LoginTask(username, password, new MessageHandler(Looper.getMainLooper(), observer));
+    LoginTask getLoginTask(String username, String password, LoginObserver observer) {
+        return new LoginTask(username, password, new MessageHandler(observer));
     }
 
     /**
@@ -66,10 +60,10 @@ public class UserService {
      */
     private static class MessageHandler extends Handler {
 
-        private final Observer observer;
+        private final LoginObserver observer;
 
-        MessageHandler(Looper looper, Observer observer) {
-            super(looper);
+        MessageHandler(LoginObserver observer) {
+            super(Looper.getMainLooper());
             this.observer = observer;
         }
 
@@ -110,6 +104,16 @@ public class UserService {
          */
         private String password;
 
+        /**
+         * The logged-in user returned by the server.
+         */
+        protected User user;
+
+        /**
+         * The auth token returned by the server.
+         */
+        protected AuthToken authToken;
+
         public LoginTask(String username, String password, Handler messageHandler) {
             super(messageHandler);
 
@@ -122,13 +126,10 @@ public class UserService {
             try {
                 Pair<User, AuthToken> loginResult = doLogin();
 
-                User loggedInUser = loginResult.getFirst();
-                AuthToken authToken = loginResult.getSecond();
+                this.user = loginResult.getFirst();
+                this.authToken = loginResult.getSecond();
 
-                BackgroundTaskUtils.loadImage(loggedInUser);
-
-                sendSuccessMessage(loggedInUser, authToken);
-
+                sendSuccessMessage();
             } catch (Exception ex) {
                 Log.e(LOG_TAG, ex.getMessage(), ex);
                 sendExceptionMessage(ex);
@@ -147,14 +148,9 @@ public class UserService {
             return new Pair<>(loggedInUser, authToken);
         }
 
-        private void sendSuccessMessage(User loggedInUser, AuthToken authToken) {
-            sendSuccessMessage(new BundleLoader() {
-                @Override
-                public void load(Bundle msgBundle) {
-                    msgBundle.putSerializable(USER_KEY, loggedInUser);
-                    msgBundle.putSerializable(AUTH_TOKEN_KEY, authToken);
-                }
-            });
+        protected void loadSuccessBundle(Bundle msgBundle) {
+            msgBundle.putSerializable(USER_KEY, this.user);
+            msgBundle.putSerializable(AUTH_TOKEN_KEY, this.authToken);
         }
     }
 }

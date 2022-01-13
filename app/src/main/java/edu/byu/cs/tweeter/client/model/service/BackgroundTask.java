@@ -7,10 +7,6 @@ import android.util.Log;
 
 public abstract class BackgroundTask implements Runnable {
 
-    protected interface BundleLoader {
-        void load(Bundle msgBundle);
-    }
-
     private static final String LOG_TAG = "Task";
 
     public static final String SUCCESS_KEY = "success";
@@ -35,27 +31,29 @@ public abstract class BackgroundTask implements Runnable {
 
     // This method is public instead of protected to make it accessible to test cases
     public void sendSuccessMessage() {
-        Bundle msgBundle = createSuccessBundle();
+        Bundle msgBundle = new Bundle();
+        msgBundle.putBoolean(SUCCESS_KEY, true);
+        loadSuccessBundle(msgBundle);
         sendMessage(msgBundle);
     }
 
-    // This method is public instead of protected to make it accessible to test cases
-    public void sendSuccessMessage(BundleLoader bundleLoader) {
-        Bundle msgBundle = createSuccessBundle();
-        bundleLoader.load(msgBundle);
-        sendMessage(msgBundle);
+    // To be overridden by each task to add information to the bundle
+    protected void loadSuccessBundle(Bundle msgBundle) {
+        // By default, do nothing
     }
 
     // This method is public instead of protected to make it accessible to test cases
     public void sendFailedMessage(String message) {
-        Bundle msgBundle = createFailedBundle();
+        Bundle msgBundle = new Bundle();
+        msgBundle.putBoolean(SUCCESS_KEY, false);
         msgBundle.putString(MESSAGE_KEY, message);
         sendMessage(msgBundle);
     }
 
     // This method is public instead of protected to make it accessible to test cases
     public void sendExceptionMessage(Exception exception) {
-        Bundle msgBundle = createFailedBundle();
+        Bundle msgBundle = new Bundle();
+        msgBundle.putBoolean(SUCCESS_KEY, false);
         msgBundle.putSerializable(EXCEPTION_KEY, exception);
         sendMessage(msgBundle);
     }
@@ -65,18 +63,6 @@ public abstract class BackgroundTask implements Runnable {
         msg.setData(msgBundle);
 
         messageHandler.sendMessage(msg);
-    }
-
-    private Bundle createSuccessBundle() {
-        Bundle msgBundle = new Bundle();
-        msgBundle.putBoolean(SUCCESS_KEY, true);
-        return msgBundle;
-    }
-
-    private Bundle createFailedBundle() {
-        Bundle msgBundle = new Bundle();
-        msgBundle.putBoolean(SUCCESS_KEY, false);
-        return msgBundle;
     }
 
     protected abstract void runTask();

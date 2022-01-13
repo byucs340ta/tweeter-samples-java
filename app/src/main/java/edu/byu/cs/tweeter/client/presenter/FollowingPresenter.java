@@ -11,10 +11,10 @@ import edu.byu.cs.tweeter.model.domain.User;
 /**
  * The presenter for the "following" functionality of the application.
  */
-public class FollowingPresenter implements FollowService.Observer {
+public class FollowingPresenter implements FollowService.GetFollowingObserver {
 
     private static final String LOG_TAG = "FollowingPresenter";
-    private static final int PAGE_SIZE = 10;
+    public static final int PAGE_SIZE = 10;
 
     private final View view;
     private final User user;
@@ -94,7 +94,7 @@ public class FollowingPresenter implements FollowService.Observer {
      * @param lastFollowee the last followee returned in the previous request (can be null).
      */
     public void getFollowing(AuthToken authToken, User targetUser, int limit, User lastFollowee) {
-        getFollowingService(this).getFollowees(authToken, targetUser, limit, lastFollowee);
+        getFollowingService().getFollowees(authToken, targetUser, limit, lastFollowee, this);
     }
 
     /**
@@ -104,8 +104,8 @@ public class FollowingPresenter implements FollowService.Observer {
      *
      * @return the instance.
      */
-    public FollowService getFollowingService(FollowService.Observer observer) {
-        return new FollowService(observer);
+    public FollowService getFollowingService() {
+        return new FollowService();
     }
 
     /**
