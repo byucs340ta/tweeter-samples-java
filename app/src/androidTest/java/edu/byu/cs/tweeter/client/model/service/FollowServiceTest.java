@@ -6,15 +6,12 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import edu.byu.cs.tweeter.client.model.net.ServerFacade;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
-import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
-import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
 import edu.byu.cs.tweeter.util.FakeData;
 
 public class FollowServiceTest {
@@ -132,10 +129,10 @@ public class FollowServiceTest {
         awaitCountDownLatch();
 
         List<User> expectedFollowees = new FakeData().getFakeUsers().subList(0, 3);
-        Assert.assertEquals(true, observer.isSuccess());
-        Assert.assertEquals(null, observer.getMessage());
+        Assert.assertTrue(observer.isSuccess());
+        Assert.assertNull(observer.getMessage());
         Assert.assertEquals(expectedFollowees, observer.getFollowees());
-        Assert.assertEquals(true, observer.getHasMorePages());
+        Assert.assertTrue(observer.getHasMorePages());
         Assert.assertNull(observer.getException());
     }
 
@@ -165,10 +162,10 @@ public class FollowServiceTest {
         followServiceSpy.getFollowees(null, null, 0, null, observer);
         awaitCountDownLatch();
 
-        Assert.assertEquals(false, observer.isSuccess());
+        Assert.assertFalse(observer.isSuccess());
         Assert.assertNull(observer.getMessage());
         Assert.assertNull(observer.getFollowees());
-        Assert.assertEquals(false, observer.getHasMorePages());
+        Assert.assertFalse(observer.getHasMorePages());
         Assert.assertNotNull(observer.getException());
     }
 
