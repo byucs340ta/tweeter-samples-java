@@ -1,8 +1,8 @@
 package edu.byu.cs.tweeter.server.service;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.util.Arrays;
@@ -20,7 +20,7 @@ public class FollowServiceTest {
     private FollowDAO mockFollowDAO;
     private FollowService followServiceSpy;
 
-    @BeforeEach
+    @Before
     public void setup() {
         AuthToken authToken = new AuthToken();
 
@@ -52,6 +52,6 @@ public class FollowServiceTest {
     @Test
     public void testGetFollowees_validRequest_correctResponse() {
         FollowingResponse response = followServiceSpy.getFollowees(request);
-        Assertions.assertEquals(expectedResponse, response);
+        Assert.assertEquals(expectedResponse, response);
     }
 }
