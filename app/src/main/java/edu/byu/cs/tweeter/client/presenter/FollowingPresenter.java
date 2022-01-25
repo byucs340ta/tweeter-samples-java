@@ -118,7 +118,7 @@ public class FollowingPresenter implements FollowService.GetFollowingObserver {
      * Adds new followees retrieved asynchronously from the service to the view.
      *
      * @param followees the retrieved followees.
-     * @param hasMorePages whether or not there are more followees to retrieved.
+     * @param hasMorePages whether or not there are more followees to retrieve.
      */
     @Override
     public void handleSuccess(List<User> followees, boolean hasMorePages) {
