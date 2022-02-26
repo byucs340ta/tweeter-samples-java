@@ -1,5 +1,8 @@
-apply plugin: 'java-library'
-apply plugin: 'com.github.johnrengelman.shadow'
+plugins {
+    id 'java-library'
+    id 'com.github.johnrengelman.shadow'
+}
+
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11
