@@ -27,8 +27,7 @@ public class ServerFacade {
      * @return the login response.
      */
     public LoginResponse login(LoginRequest request, String urlPath) throws IOException, TweeterRemoteException {
-        LoginResponse response = clientCommunicator.doPost(urlPath, request, null, LoginResponse.class);
-        return response;
+        return clientCommunicator.doPost(urlPath, request, null, LoginResponse.class);
     }
 
     /**
@@ -42,7 +41,6 @@ public class ServerFacade {
      */
     public FollowingResponse getFollowees(FollowingRequest request, String urlPath)
             throws IOException, TweeterRemoteException {
-        FollowingResponse response = clientCommunicator.doPost(urlPath, request, null, FollowingResponse.class);
-        return response;
+        return clientCommunicator.doPost(urlPath, request, null, FollowingResponse.class);
     }
 }
