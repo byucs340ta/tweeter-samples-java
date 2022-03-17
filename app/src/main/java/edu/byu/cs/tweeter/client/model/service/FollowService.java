@@ -163,7 +163,7 @@ public class FollowService {
 
         // This method is public so it can be accessed by test cases
         public FakeData getFakeData() {
-            return new FakeData();
+            return FakeData.getInstance();
         }
 
         // This method is public so it can be accessed by test cases
