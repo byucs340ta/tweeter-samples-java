@@ -46,7 +46,6 @@ public class LoginPresenter implements UserService.LoginObserver {
      */
     public void initiateLogin(String username, String password) {
         UserService userService = new UserService();
-        LoginRequest loginRequest = new LoginRequest(username, password);
         userService.login(username, password, this);
     }
 
