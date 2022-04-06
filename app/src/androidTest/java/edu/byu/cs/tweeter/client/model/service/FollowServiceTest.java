@@ -1,8 +1,8 @@
 package edu.byu.cs.tweeter.client.model.service;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.List;
@@ -27,7 +27,7 @@ public class FollowServiceTest {
      * Create a FollowService spy that uses a mock ServerFacade to return known responses to
      * requests.
      */
-    @Before
+    @BeforeEach
     public void setup() {
         currentUser = new User("FirstName", "LastName", null);
         currentAuthToken = new AuthToken();
@@ -128,11 +128,11 @@ public class FollowServiceTest {
         awaitCountDownLatch();
 
         List<User> expectedFollowees = new FakeData().getFakeUsers().subList(0, 3);
-        Assert.assertTrue(observer.isSuccess());
-        Assert.assertNull(observer.getMessage());
-        Assert.assertEquals(expectedFollowees, observer.getFollowees());
-        Assert.assertTrue(observer.getHasMorePages());
-        Assert.assertNull(observer.getException());
+        Assertions.assertTrue(observer.isSuccess());
+        Assertions.assertNull(observer.getMessage());
+        Assertions.assertEquals(expectedFollowees, observer.getFollowees());
+        Assertions.assertTrue(observer.getHasMorePages());
+        Assertions.assertNull(observer.getException());
     }
 
     /**
@@ -145,7 +145,7 @@ public class FollowServiceTest {
         awaitCountDownLatch();
 
         List<User> followees = observer.getFollowees();
-        Assert.assertTrue(followees.size() > 0);
+        Assertions.assertTrue(followees.size() > 0);
     }
 
     /**
@@ -157,10 +157,10 @@ public class FollowServiceTest {
         followServiceSpy.getFollowees(null, null, 0, null, observer);
         awaitCountDownLatch();
 
-        Assert.assertFalse(observer.isSuccess());
-        Assert.assertNull(observer.getMessage());
-        Assert.assertNull(observer.getFollowees());
-        Assert.assertFalse(observer.getHasMorePages());
-        Assert.assertNotNull(observer.getException());
+        Assertions.assertFalse(observer.isSuccess());
+        Assertions.assertNull(observer.getMessage());
+        Assertions.assertNull(observer.getFollowees());
+        Assertions.assertFalse(observer.getHasMorePages());
+        Assertions.assertNotNull(observer.getException());
     }
 }

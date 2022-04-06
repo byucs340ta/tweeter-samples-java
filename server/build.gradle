@@ -9,6 +9,10 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
+test {
+    useJUnitPlatform()
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(path: ':shared')
@@ -17,10 +21,10 @@ dependencies {
 
     // Testing related dependencies
 
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.8.2"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.8.2"
+
     // requires test/resources/mockito-extensions/org.mockito.plugins.MockMaker to have content "mock-maker-inline"
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.0.0'
-
-    // Intentionally using JUnit 4, so styles match Mockito, etc
-    testImplementation group: 'junit', name: 'junit', version: '4.13.2'
 }
 
