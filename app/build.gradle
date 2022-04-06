@@ -24,6 +24,14 @@ android {
         sourceCompatibility = 11
         targetCompatibility = 11
     }
+
+    // This doesn't seem to be required (tests work without it) but for consistency of enabling
+    // JUnit platform on both modules, I've included here.
+    testOptions {
+        unitTests.all {
+            useJUnitPlatform()
+        }
+    }
 }
 
 dependencies {
