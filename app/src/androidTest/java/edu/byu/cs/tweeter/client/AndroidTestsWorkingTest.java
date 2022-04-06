@@ -1,8 +1,8 @@
 package edu.byu.cs.tweeter.client;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
@@ -11,20 +11,20 @@ import org.mockito.Mockito;
  * dependencies are correctly set up.
  */
 public class AndroidTestsWorkingTest {
-    class Foo {
+    static class Foo {
         public void foo() {
 
         }
     }
 
-    @Before
+    @BeforeEach
     public void setup() {
         // Called before each test, set up any common code between tests
     }
 
     @Test
     public void testAsserts() {
-        Assert.assertTrue(true);
+        Assertions.assertTrue(true);
     }
     @Test
     public void testMockitoSpy() {
