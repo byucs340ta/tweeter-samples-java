@@ -60,7 +60,8 @@ dependencies {
     // implementation 'androidx.test:core:1.4.0'
 
     // Jupiter API & Test Runner for instrumented tests
-    androidTestImplementation "androidx.test:runner:1.4.0"
+    // Must be a test runtime only because it brings in JUnit 4 which could cause accidental imports
+    androidTestRuntimeOnly "androidx.test:runner:1.4.0"
     androidTestImplementation "org.junit.jupiter:junit-jupiter-api:5.8.2"
 
     // The instrumentation test companion libraries
