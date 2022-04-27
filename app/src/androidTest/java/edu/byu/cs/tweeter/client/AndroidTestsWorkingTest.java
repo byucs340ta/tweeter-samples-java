@@ -11,7 +11,7 @@ import org.mockito.Mockito;
  * dependencies are correctly set up.
  */
 public class AndroidTestsWorkingTest {
-    static class Foo {
+    class Foo {
         public void foo() {
 
         }
