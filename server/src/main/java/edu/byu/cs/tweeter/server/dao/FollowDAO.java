@@ -108,6 +108,6 @@ public class FollowDAO {
      * @return a {@link FakeData} instance.
      */
     FakeData getFakeData() {
-        return new FakeData();
+        return FakeData.getInstance();
     }
 }

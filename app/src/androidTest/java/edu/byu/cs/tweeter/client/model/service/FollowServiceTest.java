@@ -127,13 +127,12 @@ public class FollowServiceTest {
         followServiceSpy.getFollowees(currentAuthToken, currentUser, 3, null, observer);
         awaitCountDownLatch();
 
-        List<User> expectedFollowees = new FakeData().getFakeUsers().subList(0, 3);
+        List<User> expectedFollowees = FakeData.getInstance().getFakeUsers().subList(0, 3);
         Assertions.assertTrue(observer.isSuccess());
         Assertions.assertNull(observer.getMessage());
         Assertions.assertEquals(expectedFollowees, observer.getFollowees());
         Assertions.assertTrue(observer.getHasMorePages());
         Assertions.assertNull(observer.getException());
-
     }
 
     /**
