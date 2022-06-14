@@ -133,7 +133,6 @@ public class FollowServiceTest {
         Assertions.assertEquals(expectedFollowees, observer.getFollowees());
         Assertions.assertTrue(observer.getHasMorePages());
         Assertions.assertNull(observer.getException());
-
     }
 
     /**
