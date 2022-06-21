@@ -20,9 +20,9 @@ public class FollowService {
      */
     public FollowingResponse getFollowees(FollowingRequest request) {
         if(request.getFollowerAlias() == null) {
-            throw new RuntimeException("[BadRequest] Request needs to have a follower alias");
+            throw new RuntimeException("[Bad Request] Request needs to have a follower alias");
         } else if(request.getLimit() <= 0) {
-            throw new RuntimeException("[BadRequest] Request needs to have a positive limit");
+            throw new RuntimeException("[Bad Request] Request needs to have a positive limit");
         }
         return getFollowingDAO().getFollowees(request);
     }

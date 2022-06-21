@@ -161,6 +161,6 @@ public class FollowServiceTest {
         Assertions.assertNull(observer.getMessage());
         Assertions.assertNull(observer.getFollowees());
         Assertions.assertFalse(observer.getHasMorePages());
-        Assertions.assertNull(observer.getException());
+        Assertions.assertNotNull(observer.getException());
     }
 }
