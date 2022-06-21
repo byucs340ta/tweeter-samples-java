@@ -1,8 +1,8 @@
 package edu.byu.cs.tweeter.client.presenter;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -13,11 +13,6 @@ import java.util.List;
 import edu.byu.cs.tweeter.client.model.service.FollowService;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 public class FollowingPresenterTest {
 
@@ -42,7 +37,7 @@ public class FollowingPresenterTest {
      * Setup mock {@link FollowingPresenter} to verify that {@link FollowingPresenter}
      * correctly calls view methods.
      */
-    @Before
+    @BeforeEach
     public void setup() {
         fakeUser = new User("Paul", "Bunyon", "@Paul_Bunyon_123", "https://s3.amazon.com/paul_bunyon");
         fakeAuthToken = new AuthToken("abc-123-xyz-789", "August 12, 2021 3:01 PM");
@@ -64,9 +59,9 @@ public class FollowingPresenterTest {
      */
     @Test
     public void testInitialPresenterState() {
-        assertNull(followingPresenterSpy.getLastFollowee());
-        assertTrue(followingPresenterSpy.isHasMorePages());
-        assertFalse(followingPresenterSpy.isLoading());
+        Assertions.assertNull(followingPresenterSpy.getLastFollowee());
+        Assertions.assertTrue(followingPresenterSpy.isHasMorePages());
+        Assertions.assertFalse(followingPresenterSpy.isLoading());
     }
 
     @Test
@@ -82,10 +77,10 @@ public class FollowingPresenterTest {
                 User lastFollowee = invocation.getArgument(3);
 
                 // Assert that the parameters are correct
-                Assert.assertEquals(fakeUser, user);
-                Assert.assertEquals(fakeAuthToken, authToken);
-                Assert.assertEquals(limit, FollowingPresenter.PAGE_SIZE);
-                Assert.assertEquals(lastFollowee, followingPresenterSpy.getLastFollowee());
+                Assertions.assertEquals(fakeUser, user);
+                Assertions.assertEquals(fakeAuthToken, authToken);
+                Assertions.assertEquals(limit, FollowingPresenter.PAGE_SIZE);
+                Assertions.assertEquals(lastFollowee, followingPresenterSpy.getLastFollowee());
 
                 FollowService.GetFollowingObserver observer = invocation.getArgument(4);
                 observer.handleSuccess(followees, true);
@@ -118,9 +113,9 @@ public class FollowingPresenterTest {
 
         followingPresenterSpy.loadMoreItems();
 
-        assertEquals(user5, followingPresenterSpy.getLastFollowee());
-        assertTrue(followingPresenterSpy.isHasMorePages());
-        assertFalse(followingPresenterSpy.isLoading());
+        Assertions.assertEquals(user5, followingPresenterSpy.getLastFollowee());
+        Assertions.assertTrue(followingPresenterSpy.isHasMorePages());
+        Assertions.assertFalse(followingPresenterSpy.isLoading());
 
         Mockito.verify(followingViewMock).setLoading(true);
         Mockito.verify(followingViewMock).setLoading(false);
@@ -145,7 +140,7 @@ public class FollowingPresenterTest {
 
         followingPresenterSpy.loadMoreItems();
 
-        assertFalse(followingPresenterSpy.isLoading());
+        Assertions.assertFalse(followingPresenterSpy.isLoading());
 
         Mockito.verify(followingViewMock).setLoading(true);
         Mockito.verify(followingViewMock).setLoading(false);
@@ -168,7 +163,7 @@ public class FollowingPresenterTest {
         followingPresenterSpy.loadMoreItems();
 
 
-        assertFalse(followingPresenterSpy.isLoading());
+        Assertions.assertFalse(followingPresenterSpy.isLoading());
 
         Mockito.verify(followingViewMock).setLoading(true);
         Mockito.verify(followingViewMock).setLoading(false);
