@@ -142,7 +142,7 @@ public class FollowingFragment extends Fragment implements FollowingPresenter.Vi
                 itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Toast.makeText(getContext(), "You selected '" + userName.getText() + "'.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "You selected '" + userName.getText() + "'. NOTE: THIS SAMPLE CODE IS A SUBSET OF THE PROJECT FUNCTIONALITY SO THERE'S NOWHERE FOR THIS CLICK TO GO. YOU WILL NEED TO NAVIGATE TO THE CLICKED USER IN YOUR PROJECT.", Toast.LENGTH_SHORT).show();
                     }
                 });
             } else {
@@ -171,15 +171,12 @@ public class FollowingFragment extends Fragment implements FollowingPresenter.Vi
 
         private final List<User> users = new ArrayList<>();
 
-        private boolean isLoading = false;
-
         /**
          * Called to notify the adapter when data loading starts and ends.
          *
          * @param value true if we are loading, false otherwise.
          */
         void setLoading(boolean value) {
-            isLoading = value;
             if (value) {
                 addLoadingFooter();
             }
@@ -257,7 +254,7 @@ public class FollowingFragment extends Fragment implements FollowingPresenter.Vi
          */
         @Override
         public void onBindViewHolder(@NonNull FollowingHolder followingHolder, int position) {
-            if(!isLoading) {
+            if(!presenter.isLoading()) {
                 followingHolder.bindUser(users.get(position));
             }
         }
@@ -280,7 +277,7 @@ public class FollowingFragment extends Fragment implements FollowingPresenter.Vi
          */
         @Override
         public int getItemViewType(int position) {
-            return (position == users.size() - 1 && isLoading) ? LOADING_DATA_VIEW : ITEM_VIEW;
+            return (position == users.size() - 1 && presenter.isLoading()) ? LOADING_DATA_VIEW : ITEM_VIEW;
         }
 
         /**
