@@ -1,20 +1,12 @@
 package edu.byu.cs.tweeter.client.model.service;
 
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-import android.util.Log;
-
-import java.io.Serializable;
 import java.util.List;
 
-import edu.byu.cs.tweeter.client.model.service.backgroundTask.BackgroundTask;
 import edu.byu.cs.tweeter.client.model.service.backgroundTask.BackgroundTaskUtils;
+import edu.byu.cs.tweeter.client.model.service.backgroundTask.GetFollowingTask;
+import edu.byu.cs.tweeter.client.model.service.backgroundTask.handler.GetFollowingTaskHandler;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
-import edu.byu.cs.tweeter.util.FakeData;
-import edu.byu.cs.tweeter.util.Pair;
 
 /**
  * Contains the business logic for getting the users a user is following.
@@ -61,117 +53,6 @@ public class FollowService {
      */
     // This method is public so it can be accessed by test cases
     public GetFollowingTask getGetFollowingTask(AuthToken authToken, User targetUser, int limit, User lastFollowee, GetFollowingObserver observer) {
-        return new GetFollowingTask(authToken, targetUser, limit, lastFollowee, new MessageHandler(observer));
+        return new GetFollowingTask(authToken, targetUser, limit, lastFollowee, new GetFollowingTaskHandler(observer));
     }
-
-    /**
-     * Handles messages from the background task indicating that the task is done, by invoking
-     * methods on the observer.
-     */
-    public static class MessageHandler extends Handler {
-
-        private final GetFollowingObserver observer;
-
-        public MessageHandler(GetFollowingObserver observer) {
-            super(Looper.getMainLooper());
-            this.observer = observer;
-        }
-
-        @Override
-        public void handleMessage(Message message) {
-            Bundle bundle = message.getData();
-            boolean success = bundle.getBoolean(GetFollowingTask.SUCCESS_KEY);
-            if (success) {
-                List<User> followees = (List<User>) bundle.getSerializable(GetFollowingTask.FOLLOWEES_KEY);
-                boolean hasMorePages = bundle.getBoolean(GetFollowingTask.MORE_PAGES_KEY);
-                observer.handleSuccess(followees, hasMorePages);
-            } else if (bundle.containsKey(GetFollowingTask.MESSAGE_KEY)) {
-                String errorMessage = bundle.getString(GetFollowingTask.MESSAGE_KEY);
-                observer.handleFailure(errorMessage);
-            } else if (bundle.containsKey(GetFollowingTask.EXCEPTION_KEY)) {
-                Exception ex = (Exception) bundle.getSerializable(GetFollowingTask.EXCEPTION_KEY);
-                observer.handleException(ex);
-            }
-        }
-    }
-
-    /**
-     * Background task that retrieves a page of other users being followed by a specified user.
-     */
-    public static class GetFollowingTask extends BackgroundTask {
-
-        private static final String LOG_TAG = "GetFollowingTask";
-
-        public static final String FOLLOWEES_KEY = "followees";
-        public static final String MORE_PAGES_KEY = "more-pages";
-
-        /**
-         * Auth token for logged-in user.
-         */
-        protected AuthToken authToken;
-        /**
-         * The user whose following is being retrieved.
-         * (This can be any user, not just the currently logged-in user.)
-         */
-        protected User targetUser;
-        /**
-         * Maximum number of followed users to return (i.e., page size).
-         */
-        protected int limit;
-        /**
-         * The last person being followed returned in the previous page of results (can be null).
-         * This allows the new page to begin where the previous page ended.
-         */
-        protected User lastFollowee;
-
-        /**
-         * The followee users returned by the server.
-         */
-        private List<User> followees;
-        /**
-         * If there are more pages, returned by the server.
-         */
-        private boolean hasMorePages;
-
-        public GetFollowingTask(AuthToken authToken, User targetUser, int limit, User lastFollowee,
-                                Handler messageHandler) {
-            super(messageHandler);
-
-            this.authToken = authToken;
-            this.targetUser = targetUser;
-            this.limit = limit;
-            this.lastFollowee = lastFollowee;
-        }
-
-        protected void loadSuccessBundle(Bundle msgBundle) {
-            msgBundle.putSerializable(FOLLOWEES_KEY, (Serializable) this.followees);
-            msgBundle.putBoolean(MORE_PAGES_KEY, this.hasMorePages);
-        }
-
-        @Override
-        protected void runTask() {
-            try {
-                Pair<List<User>, Boolean> pageOfUsers = getFollowees();
-                this.followees = pageOfUsers.getFirst();
-                this.hasMorePages = pageOfUsers.getSecond();
-
-                sendSuccessMessage();
-            }
-            catch (Exception ex) {
-                Log.e(LOG_TAG, "Failed to get followees", ex);
-                sendExceptionMessage(ex);
-            }
-        }
-
-        // This method is public so it can be accessed by test cases
-        public FakeData getFakeData() {
-            return FakeData.getInstance();
-        }
-
-        // This method is public so it can be accessed by test cases
-        public Pair<List<User>, Boolean> getFollowees() {
-            return getFakeData().getPageOfUsers(lastFollowee, limit, targetUser);
-        }
-    }
-
 }

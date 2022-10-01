@@ -15,5 +15,4 @@ public class BackgroundTaskUtils {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(task);
     }
-
 }
