@@ -93,7 +93,7 @@ public class Status implements Serializable {
         return "Status{" +
                 "post='" + post + '\'' +
                 ", user=" + user +
-                ", datetime=" + timestamp +
+                ", timestamp=" + timestamp +
                 ", mentions=" + mentions +
                 ", urls=" + urls +
                 '}';
