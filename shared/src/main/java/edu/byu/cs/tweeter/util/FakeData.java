@@ -124,7 +124,7 @@ public class FakeData {
                 String post = "Post " + i + " " + j +
                         "\nMy friend " + mention.getAlias() + " likes this website" +
                         "\n" + url;
-                Long timestamp = System.currentTimeMillis();
+                Long timestamp = System.currentTimeMillis()+i;
                 Status status = new Status(post, sender, timestamp, urls, mentions);
                 allStatuses.add(status);
             }
