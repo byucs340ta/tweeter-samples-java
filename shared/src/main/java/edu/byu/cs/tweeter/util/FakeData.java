@@ -113,6 +113,8 @@ public class FakeData {
         allStatuses.clear();
 
         List<User> fakeUsers = getFakeUsers();
+        long timestampStart = Long.valueOf("1679189669252");
+        int numFakeUsers = fakeUsers.size();
 
         for (int i = 0; i < 2; ++i) {
             for (int j = 0; j < fakeUsers.size(); ++j) {
@@ -124,7 +126,8 @@ public class FakeData {
                 String post = "Post " + i + " " + j +
                         "\nMy friend " + mention.getAlias() + " likes this website" +
                         "\n" + url;
-                Status status = new Status(post, sender, System.currentTimeMillis()+i, urls, mentions);
+                long timestamp = timestampStart + 1000 * (i * numFakeUsers + j);
+                Status status = new Status(post, sender, timestamp, urls, mentions);
                 allStatuses.add(status);
             }
         }
