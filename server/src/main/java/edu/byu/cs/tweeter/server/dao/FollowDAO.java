@@ -4,9 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.byu.cs.tweeter.model.domain.User;
-import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
-import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
 import edu.byu.cs.tweeter.util.FakeData;
+import edu.byu.cs.tweeter.util.Pair;
 
 /**
  * A DAO for accessing 'following' data from the database.
@@ -32,25 +31,27 @@ public class FollowDAO {
      * next set of followees after any that were returned in a previous request. The current
      * implementation returns generated data and doesn't actually access a database.
      *
-     * @param request contains information about the user whose followees are to be returned and any
-     *                other information required to satisfy the request.
+     * @param followerAlias the alias of the user whose followees are to be returned
+     * @param limit the number of followees to be returned in one page
+     * @param lastFolloweeAlias the alias of the last followee in the previously retrieved page or
+     *                          null if there was no previous request.
      * @return the followees.
      */
-    public FollowingResponse getFollowees(FollowingRequest request) {
+    public Pair<List<User>, Boolean> getFollowees(String followerAlias, int limit, String lastFolloweeAlias) {
         // TODO: Generates dummy data. Replace with a real implementation.
-        assert request.getLimit() > 0;
-        assert request.getFollowerAlias() != null;
+        assert limit > 0;
+        assert followerAlias != null;
 
         List<User> allFollowees = getDummyFollowees();
-        List<User> responseFollowees = new ArrayList<>(request.getLimit());
+        List<User> responseFollowees = new ArrayList<>(limit);
 
         boolean hasMorePages = false;
 
-        if(request.getLimit() > 0) {
+        if(limit > 0) {
             if (allFollowees != null) {
-                int followeesIndex = getFolloweesStartingIndex(request.getLastFolloweeAlias(), allFollowees);
+                int followeesIndex = getFolloweesStartingIndex(lastFolloweeAlias, allFollowees);
 
-                for(int limitCounter = 0; followeesIndex < allFollowees.size() && limitCounter < request.getLimit(); followeesIndex++, limitCounter++) {
+                for(int limitCounter = 0; followeesIndex < allFollowees.size() && limitCounter < limit; followeesIndex++, limitCounter++) {
                     responseFollowees.add(allFollowees.get(followeesIndex));
                 }
 
@@ -58,7 +59,7 @@ public class FollowDAO {
             }
         }
 
-        return new FollowingResponse(responseFollowees, hasMorePages);
+        return new Pair<>(responseFollowees, hasMorePages);
     }
 
     /**
