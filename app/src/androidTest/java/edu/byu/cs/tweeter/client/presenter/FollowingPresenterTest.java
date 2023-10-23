@@ -40,7 +40,7 @@ public class FollowingPresenterTest {
     @BeforeEach
     public void setup() {
         fakeUser = new User("Paul", "Bunyon", "@Paul_Bunyon_123", "https://s3.amazon.com/paul_bunyon");
-        fakeAuthToken = new AuthToken("abc-123-xyz-789", "August 12, 2021 3:01 PM");
+        fakeAuthToken = new AuthToken("abc-123-xyz-789", 1000000);
 
         // followingViewMock is used to verify that FollowingPresenter correctly calls view methods.
         followingViewMock = Mockito.mock(FollowingPresenter.View.class);

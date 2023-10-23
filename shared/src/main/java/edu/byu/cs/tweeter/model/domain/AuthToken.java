@@ -11,7 +11,8 @@ public class AuthToken implements Serializable {
      */
     public String token;
     /**
-     * String representation of date/time at which the auth token was created.
+     * Date/time at which the auth token was created
+     * (number of milliseconds since the standard base time known as "the epoch", namely January 1, 1970, 00:00:00 GMT)
      */
     public long timestamp;
 
